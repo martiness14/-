@@ -13,7 +13,7 @@ plt.rcParams["font.size"] = 12.5
 
 d = json.load(open(os.path.join(HERE, "data.json"), encoding="utf-8"))
 items = d["items"]
-COLORS = {"Системен блок": "#2F5597", "Периферия": "#548235", "Софтуер": "#BF8F00", "Услуги": "#7F7F7F"}
+COLORS = {"Системен блок": "#2F5597", "Периферия": "#548235", "Софтуер и абонаменти": "#BF8F00", "Услуги": "#7F7F7F"}
 
 # Фигура 1 – блокова схема на конфигурацията
 fig, ax = plt.subplots(figsize=(8, 4.6), dpi=200)
@@ -33,13 +33,13 @@ box(33, 25, 34, 11, "Дънна платка\nASUS TUF X870-PLUS WIFI", "#1F3864
 BLUE, GREEN = "#2F5597", "#548235"
 box(2, 47, W, 9, "Процесор\nRyzen 9 9900X", BLUE)
 box(27, 47, W, 9, "RAM 64 GB\nDDR5-6000", BLUE)
-box(52, 47, W, 9, "Видеокарта\nRTX 5080 16 GB", BLUE)
+box(52, 47, W, 9, "Видеокарта\nRTX 5070 Ti 16 GB", BLUE)
 box(77, 47, W, 9, "Монитор\nDell 27\" 4K", GREEN)
 box(2, 26, W + 4, 9, "SSD 2 TB (M.2)\nSamsung 990 PRO", BLUE)
 box(73, 26, W + 4, 9, "HDD 4 TB (SATA)\nWD Red Plus", BLUE)
 box(2, 5, W, 9, "UPS\nAPC 1500 VA", GREEN)
 box(39.5, 5, W, 9, "Захранване\nCorsair 1000 W", BLUE)
-box(73, 5, W + 4, 9, "USB: клавиатура, мишка,\nкамера, външен SSD", GREEN)
+box(73, 5, W + 4, 9, "USB: 3D скенер, външен SSD,\nклавиатура и мишка", GREEN)
 line(12.5, 47, 40, 36); line(37.5, 47, 45, 36); line(62.5, 47, 58, 36)
 line(73, 51.5, 77, 51.5)
 line(27, 30.5, 33, 30.5); line(67, 30.5, 73, 30.5)

@@ -1,23 +1,142 @@
 {
-  "budget": 4688.00,
-  "vat": 0.20,
+  "budget": 4688.0,
+  "vat": 0.2,
   "items": [
-    {"cat":"Системен блок","name":"Процесор AMD Ryzen 9 9900X","short":"Процесор","maker":"AMD (САЩ)","qty":1,"price":399.00},
-    {"cat":"Системен блок","name":"Охладител ARCTIC Liquid Freezer III Pro 360","short":"Охладител","maker":"ARCTIC (Германия)","qty":1,"price":109.90},
-    {"cat":"Системен блок","name":"Дънна платка ASUS TUF GAMING X870-PLUS WIFI","short":"Дънна платка","maker":"ASUS (Тайван)","qty":1,"price":289.00},
-    {"cat":"Системен блок","name":"RAM Kingston FURY Beast 64 GB (2×32 GB) DDR5-6000","short":"RAM 64 GB","maker":"Kingston (САЩ)","qty":1,"price":339.00},
-    {"cat":"Системен блок","name":"Видеокарта GIGABYTE GeForce RTX 5080 WINDFORCE OC 16G","short":"Видеокарта","maker":"GIGABYTE (Тайван) / NVIDIA (САЩ)","qty":1,"price":1189.00},
-    {"cat":"Системен блок","name":"SSD Samsung 990 PRO 2 TB NVMe M.2","short":"SSD 2 TB","maker":"Samsung (Южна Корея)","qty":1,"price":189.90},
-    {"cat":"Системен блок","name":"HDD WD Red Plus 4 TB","short":"HDD 4 TB","maker":"Western Digital (САЩ)","qty":1,"price":119.90},
-    {"cat":"Системен блок","name":"Захранване Corsair RM1000x, 1000 W, 80 PLUS Gold","short":"Захранване","maker":"Corsair (САЩ)","qty":1,"price":179.90},
-    {"cat":"Системен блок","name":"Кутия Fractal Design North","short":"Кутия","maker":"Fractal Design (Швеция)","qty":1,"price":139.90},
-    {"cat":"Периферия","name":"Монитор Dell UltraSharp U2723QE, 27\", 4K","short":"Монитор","maker":"Dell (САЩ)","qty":1,"price":549.00},
-    {"cat":"Периферия","name":"Клавиатура и мишка Logitech MX Keys S Combo","short":"Клавиатура и мишка","maker":"Logitech (Швейцария)","qty":1,"price":199.90},
-    {"cat":"Периферия","name":"Уеб камера Logitech Brio 500","short":"Уеб камера","maker":"Logitech (Швейцария)","qty":1,"price":109.90},
-    {"cat":"Периферия","name":"UPS APC Back-UPS Pro BR1500MI, 1500 VA","short":"UPS","maker":"APC by Schneider Electric (Франция)","qty":1,"price":279.00},
-    {"cat":"Периферия","name":"Външен SSD Samsung T7 Shield 2 TB","short":"Външен SSD","maker":"Samsung (Южна Корея)","qty":1,"price":159.90},
-    {"cat":"Софтуер","name":"Операционна система Microsoft Windows 11 Pro","short":"Windows 11 Pro","maker":"Microsoft (САЩ)","qty":1,"price":229.00},
-    {"cat":"Софтуер","name":"Microsoft Office Home 2024","short":"Office 2024","maker":"Microsoft (САЩ)","qty":1,"price":149.00},
-    {"cat":"Услуги","name":"Сглобяване, инсталиране и тестване","short":"Сглобяване","maker":"Доставчик","qty":1,"price":39.00}
+    {
+      "cat": "Системен блок",
+      "name": "Процесор AMD Ryzen 9 9900X",
+      "short": "Процесор",
+      "maker": "AMD (САЩ)",
+      "qty": 1,
+      "price": 399.0
+    },
+    {
+      "cat": "Системен блок",
+      "name": "Охладител ARCTIC Liquid Freezer III Pro 360",
+      "short": "Охладител",
+      "maker": "ARCTIC (Германия)",
+      "qty": 1,
+      "price": 109.9
+    },
+    {
+      "cat": "Системен блок",
+      "name": "Дънна платка ASUS TUF GAMING X870-PLUS WIFI",
+      "short": "Дънна платка",
+      "maker": "ASUS (Тайван)",
+      "qty": 1,
+      "price": 289.0
+    },
+    {
+      "cat": "Системен блок",
+      "name": "RAM Kingston FURY Beast 64 GB (2×32 GB) DDR5-6000",
+      "short": "RAM 64 GB",
+      "maker": "Kingston (САЩ)",
+      "qty": 1,
+      "price": 339.0
+    },
+    {
+      "cat": "Системен блок",
+      "name": "Видеокарта GIGABYTE GeForce RTX 5070 Ti WINDFORCE OC SFF 16G",
+      "short": "Видеокарта",
+      "maker": "GIGABYTE (Тайван) / NVIDIA (САЩ)",
+      "qty": 1,
+      "price": 879.0
+    },
+    {
+      "cat": "Системен блок",
+      "name": "SSD Samsung 990 PRO 2 TB NVMe M.2",
+      "short": "SSD 2 TB",
+      "maker": "Samsung (Южна Корея)",
+      "qty": 1,
+      "price": 189.9
+    },
+    {
+      "cat": "Системен блок",
+      "name": "HDD WD Red Plus 4 TB",
+      "short": "HDD 4 TB",
+      "maker": "Western Digital (САЩ)",
+      "qty": 1,
+      "price": 119.9
+    },
+    {
+      "cat": "Системен блок",
+      "name": "Захранване Corsair RM1000x, 1000 W, 80 PLUS Gold",
+      "short": "Захранване",
+      "maker": "Corsair (САЩ)",
+      "qty": 1,
+      "price": 179.9
+    },
+    {
+      "cat": "Системен блок",
+      "name": "Кутия Fractal Design North",
+      "short": "Кутия",
+      "maker": "Fractal Design (Швеция)",
+      "qty": 1,
+      "price": 139.9
+    },
+    {
+      "cat": "Периферия",
+      "name": "Монитор Dell UltraSharp U2723QE, 27\", 4K",
+      "short": "Монитор",
+      "maker": "Dell (САЩ)",
+      "qty": 1,
+      "price": 549.0
+    },
+    {
+      "cat": "Периферия",
+      "name": "Клавиатура и мишка Logitech MX Keys S Combo",
+      "short": "Клавиатура и мишка",
+      "maker": "Logitech (Швейцария)",
+      "qty": 1,
+      "price": 199.9
+    },
+    {
+      "cat": "Периферия",
+      "name": "UPS APC Back-UPS Pro BR1500MI, 1500 VA",
+      "short": "UPS",
+      "maker": "APC by Schneider Electric (Франция)",
+      "qty": 1,
+      "price": 279.0
+    },
+    {
+      "cat": "Периферия",
+      "name": "Външен SSD Samsung T7 Shield 2 TB",
+      "short": "Външен SSD",
+      "maker": "Samsung (Южна Корея)",
+      "qty": 1,
+      "price": 159.9
+    },
+    {
+      "cat": "Периферия",
+      "name": "3D скенер Creality CR-Scan Ferret Pro",
+      "short": "3D скенер",
+      "maker": "Creality (Китай)",
+      "qty": 1,
+      "price": 299.0
+    },
+    {
+      "cat": "Софтуер и абонаменти",
+      "name": "Операционна система Microsoft Windows 11 Pro",
+      "short": "Windows 11 Pro",
+      "maker": "Microsoft (САЩ)",
+      "qty": 1,
+      "price": 229.0
+    },
+    {
+      "cat": "Софтуер и абонаменти",
+      "name": "Абонамент Meshy AI Pro – изкуствен интелект за 3D модели, 12 месеца (12 × 19,99 €)",
+      "short": "AI абонамент (12 м.)",
+      "maker": "Meshy",
+      "qty": 1,
+      "price": 239.88
+    },
+    {
+      "cat": "Услуги",
+      "name": "Сглобяване, инсталиране и тестване",
+      "short": "Сглобяване",
+      "maker": "Доставчик",
+      "qty": 1,
+      "price": 39.0
+    }
   ]
 }
