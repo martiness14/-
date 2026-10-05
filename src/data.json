@@ -6,137 +6,129 @@
       "cat": "Системен блок",
       "name": "Процесор AMD Ryzen 9 9900X",
       "short": "Процесор",
-      "maker": "AMD (САЩ)",
+      "maker": "AMD",
       "qty": 1,
-      "price": 399.0
+      "price": 359.99
     },
     {
       "cat": "Системен блок",
       "name": "Охладител ARCTIC Liquid Freezer III Pro 360",
       "short": "Охладител",
-      "maker": "ARCTIC (Германия)",
+      "maker": "ARCTIC",
       "qty": 1,
-      "price": 109.9
+      "price": 68.64
     },
     {
       "cat": "Системен блок",
-      "name": "Дънна платка ASUS TUF GAMING X870-PLUS WIFI",
+      "name": "Дънна платка ASUS TUF GAMING B850-PLUS WIFI",
       "short": "Дънна платка",
-      "maker": "ASUS (Тайван)",
+      "maker": "ASUS",
       "qty": 1,
-      "price": 289.0
+      "price": 175.0
     },
     {
       "cat": "Системен блок",
-      "name": "RAM Kingston FURY Beast 64 GB (2×32 GB) DDR5-6000",
+      "name": "RAM Kingston FURY Beast 64 GB (2×32 GB) DDR5-6000 CL36",
       "short": "RAM 64 GB",
-      "maker": "Kingston (САЩ)",
+      "maker": "Kingston",
       "qty": 1,
-      "price": 339.0
+      "price": 949.0
     },
     {
       "cat": "Системен блок",
       "name": "Видеокарта GIGABYTE GeForce RTX 5070 Ti WINDFORCE OC SFF 16G",
       "short": "Видеокарта",
-      "maker": "GIGABYTE (Тайван) / NVIDIA (САЩ)",
+      "maker": "GIGABYTE / NVIDIA",
       "qty": 1,
-      "price": 879.0
+      "price": 1049.0
     },
     {
       "cat": "Системен блок",
-      "name": "SSD Samsung 990 PRO 2 TB NVMe M.2",
+      "name": "SSD WD Black SN7100 2 TB NVMe M.2",
       "short": "SSD 2 TB",
-      "maker": "Samsung (Южна Корея)",
+      "maker": "SanDisk (WD_BLACK)",
       "qty": 1,
-      "price": 189.9
+      "price": 305.19
     },
     {
       "cat": "Системен блок",
-      "name": "HDD WD Red Plus 4 TB",
+      "name": "HDD Seagate IronWolf 4 TB",
       "short": "HDD 4 TB",
-      "maker": "Western Digital (САЩ)",
+      "maker": "Seagate",
       "qty": 1,
-      "price": 119.9
+      "price": 199.0
     },
     {
       "cat": "Системен блок",
-      "name": "Захранване Corsair RM1000x, 1000 W, 80 PLUS Gold",
+      "name": "Захранване Corsair RM850x, 850 W, 80 PLUS Gold",
       "short": "Захранване",
-      "maker": "Corsair (САЩ)",
+      "maker": "Corsair",
       "qty": 1,
-      "price": 179.9
+      "price": 144.99
     },
     {
       "cat": "Системен блок",
-      "name": "Кутия Fractal Design North",
+      "name": "Кутия Fractal Design Focus 2",
       "short": "Кутия",
-      "maker": "Fractal Design (Швеция)",
+      "maker": "Fractal Design",
       "qty": 1,
-      "price": 139.9
+      "price": 67.55
     },
     {
       "cat": "Периферия",
-      "name": "Монитор Dell UltraSharp U2723QE, 27\", 4K",
+      "name": "Монитор Dell S2725QS, 27\", 4K",
       "short": "Монитор",
-      "maker": "Dell (САЩ)",
+      "maker": "Dell",
       "qty": 1,
-      "price": 549.0
+      "price": 296.04
     },
     {
       "cat": "Периферия",
-      "name": "Клавиатура и мишка Logitech MX Keys S Combo",
+      "name": "Клавиатура и мишка Logitech Signature MK650",
       "short": "Клавиатура и мишка",
-      "maker": "Logitech (Швейцария)",
+      "maker": "Logitech",
       "qty": 1,
-      "price": 199.9
+      "price": 73.85
     },
     {
       "cat": "Периферия",
-      "name": "UPS APC Back-UPS Pro BR1500MI, 1500 VA",
+      "name": "UPS APC Back-UPS BX1200MI, 1200 VA",
       "short": "UPS",
-      "maker": "APC by Schneider Electric (Франция)",
+      "maker": "APC by Schneider Electric",
       "qty": 1,
-      "price": 279.0
-    },
-    {
-      "cat": "Периферия",
-      "name": "Външен SSD Samsung T7 Shield 2 TB",
-      "short": "Външен SSD",
-      "maker": "Samsung (Южна Корея)",
-      "qty": 1,
-      "price": 159.9
+      "price": 145.0
     },
     {
       "cat": "Периферия",
       "name": "3D скенер Creality CR-Scan Ferret Pro",
       "short": "3D скенер",
-      "maker": "Creality (Китай)",
+      "maker": "Creality",
       "qty": 1,
-      "price": 299.0
+      "price": 354.0
     },
     {
       "cat": "Софтуер и абонаменти",
       "name": "Операционна система Microsoft Windows 11 Pro",
       "short": "Windows 11 Pro",
-      "maker": "Microsoft (САЩ)",
+      "maker": "Microsoft",
       "qty": 1,
-      "price": 229.0
+      "price": 216.36
     },
     {
       "cat": "Софтуер и абонаменти",
-      "name": "Абонамент Meshy AI Pro – изкуствен интелект за 3D модели, 12 месеца (12 × 19,99 €)",
-      "short": "AI абонамент (12 м.)",
+      "name": "Абонамент Meshy AI Pro – изкуствен интелект за 3D модели, 12 месеца (годишно плащане)",
+      "short": "AI абонамент",
       "maker": "Meshy",
       "qty": 1,
-      "price": 239.88
+      "price": 165.0
     },
     {
       "cat": "Услуги",
       "name": "Сглобяване, инсталиране и тестване",
       "short": "Сглобяване",
-      "maker": "Доставчик",
+      "maker": "Магазинът",
       "qty": 1,
-      "price": 39.0
+      "price": 44.0
     }
   ]
 }
