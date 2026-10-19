@@ -103,8 +103,9 @@ def glyph(ch, w, h, c):
         g = S([(x0, y0), (x1 - c2 * K, y0), (x1, y0 + c2), (x1, ym - c2),
                (x1 - c2 * K, ym), (x0 + c2 * K, ym), (x0, ym + c2), (x0, y1), (x1, y1)])
     elif ch == '7':
-        xb = max(x0, x1 - (y1 - y0) * K)              # кракът е точно на 60°
-        g = S([(x0, y0), (x1, y0), (xb, y1)])
+        xb = max(0.0, w - T * 1.2 - h * K)             # кракът е 60°, ако има място; краищата са равни
+        leg = Polygon([(w - T * 1.2, 0), (w, 0), (xb + T * 1.2, h), (xb, h)])
+        g = U(box(0, 0, w, T), leg)
     else:
         raise ValueError(ch)
     return g.intersection(box(0, 0, w, h))
@@ -173,12 +174,14 @@ def compose(H2=15.0, H1=11.0, H3=11.0, c=3.0, track=1.4, row_gap=1.6, step=0.0, 
     art = U(lab, year, coin)
     b = art.bounds
     dx, dy = -(b[0] + b[2]) / 2, -(b[1] + b[3]) / 2
-    return mv(art, dx, dy).intersection(FIELD), mv(pocket, dx, dy)
+    art = mv(art, dx, dy)
+    compose.clipped = art.difference(FIELD).area
+    return art.intersection(FIELD), mv(pocket, dx, dy)
 
 
 VARIANTS = {
     'A-clean': dict(),                                      # три прави реда
-    'B-step':  dict(step=4.0, slide=False, fault=0.4),      # десният блок слиза надолу
+    'B-step':  dict(step=4.0, slide=False, fault=0.4, H3=10.0, track=1.2),  # десният блок слиза надолу
     'C-slide': dict(step=4.0),                              # десният блок се плъзга по 60° ръба
 }
 
@@ -223,6 +226,7 @@ def main():
     for name, kw in VARIANTS.items():
         art, pocket = compose(**kw)
         report(name, art)
+        print(f'{"":10s} изрязано от ръба: {compose.clipped:.2f} мм²')
         files = {f'labcoin-2027-front-{name}.svg': svg(art, pocket, sticker=False),
                  f'labcoin-2027-front-{name}-no-background.svg': svg(art, pocket, bg=False, sticker=False)}
         for fn, s in files.items():
