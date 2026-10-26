@@ -5,7 +5,8 @@
   1. Отвори Blender -> раздел Scripting -> Open -> този файл -> Run Script.
   2. Сложи до .blend файла:
        presenter.mp4  – твоето грийн скрийн видео (или PNG поредица с алфа)
-       logo.png       – логото за големия шестоъгълник (по желание)
+       logo.svg       – логото за релефа на големия шестоъгълник (по желание;
+                        без него се слага вградено лого-колба)
        screen.png     – снимка/видео на екрана на телефона (по желание)
      Ако ги няма, скриптът слага заместители, за да видиш сцената.
   3. Настройките са в блока НАСТРОЙКИ по-долу.
@@ -29,16 +30,14 @@ PLATE_FEET_OFFSET = 0.05   # колко е празното място под к
 KEY_THRESHOLD = 0.08       # от колко „зелено“ започва да се реже
 KEY_SOFTNESS = 0.12        # мекота на ръба
 
-LOGO_FILE = os.path.join(BASE_DIR, "logo.png")
 PHONE_SCREEN_FILE = os.path.join(BASE_DIR, "screen.png")
 
 ACCENT = (0.85, 0.18, 1.0)      # основен неон (лилаво); за „алармата“ -> (1, 0.05, 0.05)
-BACKDROP = (1.0, 0.62, 0.98)    # светлият розов шестоъгълник отзад
 ACTIVE_SET = "STUDIO"           # "STUDIO" или "CITY" (неоновият град/карта)
 SHOW_PRESENTER = True           # False = празна сцена (без водещия)
 SHOW_PROPS = True               # False = без балончетата и телефона
 CEILING = True                  # таван с греди и лампи – да изглежда като затворена зала
-FOG = False                     # лека мъгла -> видими лъчи от лампите (по-бавен рендер)
+FOG = True                      # лека мъгла -> сияние и лъчи като в оригинала (по-бавен рендер)
 
 FPS = 25
 DURATION_SEC = 30               # дължина на тестовата анимация; после я сменяш
@@ -274,74 +273,506 @@ def pop_in(obj, frame, length=8):
 
 # ---------------------------------------------------------------- части на сцената
 
-def build_platform(coll, neon):
-    dark = mat_basic("PlatformDark", (0.03, 0.015, 0.05), roughness=0.25, metallic=0.6)
-    top = 0.0
-    for i, (r, h) in enumerate([(1.7, 0.10), (1.45, 0.10), (1.2, 0.10)]):
-        z = top + h / 2
-        link(hex_prism(f"Platform_{i}", r, h, (0, 0, z), mat=dark), coll)
-        link(hex_ring(f"PlatformNeon_{i}", r, 0.012, (0, 0, top + h), mat=neon), coll)
-        top += h
-    return top  # височината, на която стъпва водещият
+# ---------------------------------------------------------------- детайлни материали
+
+def _principled(mat):
+    mat.use_nodes = True
+    return mat.node_tree, mat.node_tree.nodes["Principled BSDF"]
 
 
-def build_floor(coll, neon):
-    floor = mat_basic("Floor", (0.012, 0.006, 0.02), roughness=0.12, metallic=0.3)
-    bpy.ops.mesh.primitive_plane_add(size=60, location=(0, 0, 0))
-    link(bpy.context.active_object, coll).data.materials.append(floor)
-    # неонови линии по пода, които излизат от платформата
-    for i in range(6):
-        a = math.radians(60 * i + 30)
-        length = 6.0
-        c = Vector((math.cos(a), math.sin(a), 0)) * (1.7 + length / 2)
-        link(box(f"FloorLine_{i}", (length, 0.03, 0.005), (c.x, c.y, 0.003),
-                 (0, 0, a), mat=neon), coll)
+def _marble_fac(nt, scale, distortion=5.0, seed=0.0):
+    """Мраморни жилки: изкривен noise -> тясна ивица около 0.5."""
+    n = nt.nodes.new
+    coord = n("ShaderNodeTexCoord")
+    mapping = n("ShaderNodeMapping")
+    mapping.inputs["Location"].default_value = (seed, seed * 0.7, seed * 1.3)
+    mapping.inputs["Scale"].default_value = (scale, scale, scale)
+    nt.links.new(coord.outputs["Object"], mapping.inputs["Vector"])
+    noise = n("ShaderNodeTexNoise")
+    noise.inputs["Scale"].default_value = 1.2
+    noise.inputs["Detail"].default_value = 12
+    noise.inputs["Roughness"].default_value = 0.62
+    noise.inputs["Distortion"].default_value = distortion
+    nt.links.new(mapping.outputs["Vector"], noise.inputs["Vector"])
+    ramp = n("ShaderNodeValToRGB")
+    els = ramp.color_ramp.elements
+    els[0].position, els[0].color = 0.47, (0, 0, 0, 1)
+    els[1].position, els[1].color = 0.5, (1, 1, 1, 1)
+    e = els.new(0.53)
+    e.color = (0, 0, 0, 1)
+    nt.links.new(noise.outputs["Fac"], ramp.inputs["Fac"])
+    return ramp.outputs["Color"], noise.outputs["Fac"]
 
 
-def build_backdrop(coll, neon):
-    bright = mat_emission("BackdropHex", BACKDROP, strength=2.5)
-    frame = mat_basic("BackdropFrame", (0.08, 0.03, 0.12), roughness=0.3)
-    y, z = 4.5, 3.3
-    link(hex_prism("BackdropFrame", 2.55, 0.25, (0, y + 0.1, z),
-                   (math.radians(90), 0, 0), mat=frame), coll)
-    link(hex_prism("BackdropHex", 2.3, 0.3, (0, y, z),
-                   (math.radians(90), 0, 0), mat=bright), coll)
-    link(hex_ring("BackdropNeon", 2.55, 0.02, (0, y - 0.16, z),
-                  (math.radians(90), 0, 0), mat=neon), coll)
+def mat_marble(name, base, vein, roughness=0.25, emission=0.0, scale=0.6, seed=0.0):
+    """Мрамор с жилки; emission > 0 -> мраморът свети (розовите ниши)."""
+    mat = bpy.data.materials.new(name)
+    nt, bsdf = _principled(mat)
+    veins, cloud = _marble_fac(nt, scale, seed=seed)
+    mix = nt.nodes.new("ShaderNodeMix")
+    mix.data_type = "RGBA"
+    mix.inputs[6].default_value = (*base, 1)
+    mix.inputs[7].default_value = (*vein, 1)
+    nt.links.new(veins, mix.inputs["Factor"])
+    nt.links.new(mix.outputs[2], bsdf.inputs["Base Color"])
+    rough = nt.nodes.new("ShaderNodeMapRange")
+    rough.inputs["To Min"].default_value = roughness * 0.7
+    rough.inputs["To Max"].default_value = roughness * 1.4
+    nt.links.new(cloud, rough.inputs["Value"])
+    nt.links.new(rough.outputs["Result"], bsdf.inputs["Roughness"])
+    if emission:
+        nt.links.new(mix.outputs[2], bsdf.inputs["Emission Color"])
+        bsdf.inputs["Emission Strength"].default_value = emission
+    return mat
 
-    logo = load_image(LOGO_FILE)
-    if logo:
-        mat = bpy.data.materials.new("Logo")
+
+def mat_floor_tiles():
+    """Тъмен лъскав камък, всяка плочка с малко различен тон,
+    по някои плочки – светещи пукнатини (като долу вдясно в оригинала)."""
+    mat = bpy.data.materials.new("FloorTiles")
+    nt, bsdf = _principled(mat)
+    n = nt.nodes.new
+    veins, cloud = _marble_fac(nt, 0.35, distortion=7.0, seed=3.0)
+    geo = n("ShaderNodeAttribute")
+    geo.attribute_name = "tile_rand"
+    tone = n("ShaderNodeMapRange")
+    tone.inputs["To Min"].default_value = 0.65
+    tone.inputs["To Max"].default_value = 1.25
+    nt.links.new(geo.outputs["Fac"], tone.inputs["Value"])
+    mix = n("ShaderNodeMix")
+    mix.data_type = "RGBA"
+    mix.inputs[6].default_value = (0.02, 0.008, 0.032, 1)
+    mix.inputs[7].default_value = (0.065, 0.03, 0.09, 1)
+    nt.links.new(veins, mix.inputs["Factor"])
+    tint = n("ShaderNodeMix")
+    tint.data_type = "RGBA"
+    tint.blend_type = "MULTIPLY"
+    tint.inputs["Factor"].default_value = 1.0
+    nt.links.new(mix.outputs[2], tint.inputs[6])
+    comb = n("ShaderNodeCombineColor")
+    for i in range(3):
+        nt.links.new(tone.outputs["Result"], comb.inputs[i])
+    nt.links.new(comb.outputs[0], tint.inputs[7])
+    nt.links.new(tint.outputs[2], bsdf.inputs["Base Color"])
+    rough = n("ShaderNodeMapRange")
+    rough.inputs["To Min"].default_value = 0.08
+    rough.inputs["To Max"].default_value = 0.3
+    nt.links.new(cloud, rough.inputs["Value"])
+    nt.links.new(rough.outputs["Result"], bsdf.inputs["Roughness"])
+    bsdf.inputs["Coat Weight"].default_value = 0.4
+    bsdf.inputs["Coat Roughness"].default_value = 0.05
+
+    # пукнатини: ръбове на voronoi, само по ~8% от плочките
+    coord = n("ShaderNodeTexCoord")
+    warp = n("ShaderNodeTexNoise")
+    warp.inputs["Scale"].default_value = 3.0
+    wmix = n("ShaderNodeMix")
+    wmix.data_type = "VECTOR"
+    wmix.inputs["Factor"].default_value = 0.08
+    nt.links.new(coord.outputs["Object"], wmix.inputs[4])
+    nt.links.new(warp.outputs["Color"], wmix.inputs[5])
+    vor = n("ShaderNodeTexVoronoi")
+    vor.feature = "DISTANCE_TO_EDGE"
+    vor.inputs["Scale"].default_value = 2.2
+    nt.links.new(wmix.outputs[1], vor.inputs["Vector"])
+    crack = n("ShaderNodeMapRange")
+    crack.inputs["From Min"].default_value = 0.0
+    crack.inputs["From Max"].default_value = 0.012
+    crack.inputs["To Min"].default_value = 1.0
+    crack.inputs["To Max"].default_value = 0.0
+    nt.links.new(vor.outputs["Distance"], crack.inputs["Value"])
+    pick = n("ShaderNodeMath"); pick.operation = "GREATER_THAN"
+    pick.inputs[1].default_value = 0.92
+    nt.links.new(geo.outputs["Fac"], pick.inputs[0])
+    mask = n("ShaderNodeMath"); mask.operation = "MULTIPLY"
+    nt.links.new(crack.outputs["Result"], mask.inputs[0])
+    nt.links.new(pick.outputs[0], mask.inputs[1])
+    strength = n("ShaderNodeMath"); strength.operation = "MULTIPLY"
+    strength.inputs[1].default_value = 6.0
+    nt.links.new(mask.outputs[0], strength.inputs[0])
+    grp = n("ShaderNodeGroup")
+    grp.node_tree = accent_group()
+    nt.links.new(grp.outputs[0], bsdf.inputs["Emission Color"])
+    nt.links.new(strength.outputs[0], bsdf.inputs["Emission Strength"])
+    return mat
+
+
+def studio_materials():
+    m = {}
+    m["chrome"] = mat_basic("Chrome", (0.85, 0.8, 0.9), roughness=0.08, metallic=1.0)
+    m["dark_metal"] = mat_basic("DarkMetal", (0.04, 0.02, 0.06), roughness=0.22, metallic=0.85)
+    m["wall"] = mat_marble("WallDark", (0.035, 0.013, 0.055), (0.08, 0.035, 0.11),
+                           roughness=0.3, scale=0.45, seed=1.0)
+    m["pillar"] = mat_marble("PillarStone", (0.05, 0.02, 0.075), (0.16, 0.08, 0.2),
+                             roughness=0.18, scale=0.8, seed=2.0)
+    m["niche"] = mat_marble("NicheMarble", (0.42, 0.05, 0.58), (0.78, 0.3, 0.95),
+                            roughness=0.35, emission=0.22, scale=0.5, seed=4.0)
+    m["alcove"] = mat_basic("AlcoveBlack", (0.004, 0.003, 0.01), roughness=0.25, metallic=0.3)
+    m["plaque"] = mat_marble("LogoPlaque", (0.72, 0.3, 0.88), (0.88, 0.58, 1.0),
+                             roughness=0.45, emission=0.08, scale=0.9, seed=5.0)
+    m["logo"] = mat_basic("LogoRelief", (0.5, 0.16, 0.7), roughness=0.35)
+    m["logo"].node_tree.nodes["Principled BSDF"].inputs["Emission Color"].default_value = (0.5, 0.16, 0.7, 1)
+    m["logo"].node_tree.nodes["Principled BSDF"].inputs["Emission Strength"].default_value = 0.1
+    m["led"] = mat_emission("LED", use_accent=True, strength=8)
+    m["led_white"] = mat_emission("LEDWhite", (1.0, 0.55, 1.0), strength=4)
+    m["tile"] = mat_floor_tiles()
+    m["grout"] = mat_basic("Grout", (0.005, 0.002, 0.008), roughness=0.6)
+    return m
+
+
+# ---------------------------------------------------------------- детайлна геометрия
+
+def mesh_object(name, verts, faces, coll, mat=None):
+    me = bpy.data.meshes.new(name)
+    me.from_pydata(verts, [], faces)
+    me.update()
+    obj = bpy.data.objects.new(name, me)
+    coll.objects.link(obj)
+    if mat:
+        me.materials.append(mat)
+    return obj
+
+
+def add_bevel(obj, width=0.01, segments=2):
+    mod = obj.modifiers.new("Bevel", "BEVEL")
+    mod.width = width
+    mod.segments = segments
+    mod.limit_method = "ANGLE"
+    return mod
+
+
+def extrude_polys(name, polys, depth, coll, mat=None):
+    """Плоски форми (x, z) изтеглени по -Y – за релефа на логото."""
+    verts, faces = [], []
+    for poly in polys:
+        n0 = len(verts)
+        k = len(poly)
+        verts += [(x, 0, z) for x, z in poly] + [(x, -depth, z) for x, z in poly]
+        faces.append(tuple(n0 + i for i in range(k))[::-1])
+        faces.append(tuple(n0 + k + i for i in range(k)))
+        for i in range(k):
+            j = (i + 1) % k
+            faces.append((n0 + i, n0 + j, n0 + k + j, n0 + k + i))
+    return mesh_object(name, verts, faces, coll, mat)
+
+
+def circle_pts(cx, cz, r, n=40, a0=0.0, a1=2 * math.pi):
+    return [(cx + r * math.cos(a0 + (a1 - a0) * i / n),
+             cz + r * math.sin(a0 + (a1 - a0) * i / n)) for i in range(n)]
+
+
+def hex_pts(r, flat_top=True):
+    off = 0 if flat_top else 30
+    return [(r * math.cos(math.radians(60 * i + off)),
+             r * math.sin(math.radians(60 * i + off))) for i in range(6)]
+
+
+def hex_band(name, r_out, r_in, z, height, coll, mat):
+    """Шестоъгълна лента (рамка) – за вградените светещи ивици в пиедестала."""
+    o, i_ = hex_pts(r_out), hex_pts(r_in)
+    verts = ([(x, y, z) for x, y in o] + [(x, y, z) for x, y in i_] +
+             [(x, y, z + height) for x, y in o] + [(x, y, z + height) for x, y in i_])
+    faces = []
+    for k in range(6):
+        j = (k + 1) % 6
+        faces.append((12 + k, 12 + j, 18 + j, 18 + k))   # горе
+        faces.append((k, 6 + k, 6 + j, j))               # долу
+        faces.append((k, j, 12 + j, 12 + k))             # външна стена
+        faces.append((6 + k, 18 + k, 18 + j, 6 + j))     # вътрешна стена
+    return mesh_object(name, verts, faces, coll, mat)
+
+
+def hex_slab(name, r, z, height, coll, mat):
+    pts = hex_pts(r)
+    verts = [(x, y, z) for x, y in pts] + [(x, y, z + height) for x, y in pts]
+    faces = [tuple(range(5, -1, -1)), tuple(range(6, 12))]
+    faces += [(k, (k + 1) % 6, 6 + (k + 1) % 6, 6 + k) for k in range(6)]
+    return mesh_object(name, verts, faces, coll, mat)
+
+
+def build_hex_floor(coll, m, radius=10.5, tile_r=0.55, gap=0.035, height=0.04):
+    """Под от отделни шестоъгълни плочки с фуги (един обект, ~600 плочки)."""
+    verts, faces = [], []
+    step = tile_r + gap / math.sqrt(3)
+    dx, dy = 1.5 * step, math.sqrt(3) * step
+    cols = int(radius / dx) + 2
+    rows = int(radius / dy) + 2
+    corners = hex_pts(tile_r, True)
+    for c in range(-cols, cols + 1):
+        for r in range(-rows, rows + 1):
+            x = c * dx
+            y = r * dy + (dy / 2 if c % 2 else 0)
+            if math.hypot(x, y) > radius:
+                continue
+            n0 = len(verts)
+            verts += [(x + px, y + py, 0) for px, py in corners]
+            verts += [(x + px, y + py, height) for px, py in corners]
+            faces.append(tuple(n0 + 6 + k for k in range(6)))
+            faces += [(n0 + k, n0 + (k + 1) % 6, n0 + 6 + (k + 1) % 6, n0 + 6 + k)
+                      for k in range(6)]
+    floor = mesh_object("FloorTiles", verts, faces, coll, m["tile"])
+    attr = floor.data.attributes.new("tile_rand", "FLOAT", "FACE")
+    rng = random.Random(11)
+    vals = []
+    for _ in range(len(faces) // 7):   # 7 стени на плочка
+        v = rng.random()
+        vals += [v] * 7
+    attr.data.foreach_set("value", vals)
+    add_bevel(floor, 0.008, 2)
+    bpy.ops.mesh.primitive_plane_add(size=2 * radius + 2, location=(0, 0, 0.005))
+    link(bpy.context.active_object, coll).data.materials.append(m["grout"])
+    return height
+
+
+def build_platform(coll, m, floor_top):
+    """Пиедестал като в оригинала: нисък тъмен шестоъгълник, светеща външна
+    рамка, широка розова лента и вътрешен шестоъгълен контур."""
+    z = floor_top
+    link(hex_slab("Platform_Base", 2.05, z, 0.05, coll, m["pillar"]), coll)
+    hex_band("PlatformEdgeLED", 2.06, 1.98, z, 0.052, coll, m["led_white"])
+    z += 0.05
+    hex_slab("Platform_Top", 1.75, z, 0.06, coll, m["pillar"])
+    hex_band("PlatformBandLED", 1.55, 1.38, z + 0.06, 0.004, coll, m["led"])
+    hex_band("PlatformInnerLED", 0.86, 0.8, z + 0.06, 0.004, coll, m["led_white"])
+    hex_band("PlatformTrim", 1.76, 1.72, z, 0.062, coll, m["chrome"])
+    return z + 0.06
+
+
+# --- стени: осмоъгълна зала, всяка стена е „сегмент“
+
+ROOM_R = 7.0
+WALL_H = 7.0
+
+
+def _seg_frame(k):
+    a = math.radians(45 * k)
+    d = Vector((math.sin(a), math.cos(a), 0))      # навън (към стената)
+    t = Vector((math.cos(a), -math.sin(a), 0))     # по стената, отляво надясно
+    return d * ROOM_R, d, t, -a
+
+
+def _seg_box(name, coll, mat, k, x, y, z, sx, sy, sz):
+    """Кутия в локалните координати на сегмент k: x по стената, y навътре в нея."""
+    c, d, t, rot = _seg_frame(k)
+    pos = c + t * x + d * y + Vector((0, 0, z))
+    return link(box(name, (sx, sy, sz), pos, (0, 0, rot), mat=mat), coll)
+
+
+def _seg_rod(name, coll, mat, k, x, y, z0, z1, r=0.022):
+    c, d, t, rot = _seg_frame(k)
+    pos = c + t * x + d * y + Vector((0, 0, (z0 + z1) / 2))
+    bpy.ops.mesh.primitive_cylinder_add(vertices=16, radius=r, depth=z1 - z0, location=pos)
+    obj = bpy.context.active_object
+    obj.name = name
+    obj.data.materials.append(mat)
+    return link(obj, coll)
+
+
+def build_wall_segment(coll, m, k, kind):
+    w = 2 * ROOM_R * math.tan(math.radians(22.5))
+    half = w / 2
+    p = f"Seg{k}_"
+    if kind == "alcove":
+        ow, oh, depth = 3.9, 5.2, 1.6     # отвор на тъмната ниша зад логото
+    else:
+        ow, oh, depth = 3.0, 5.4, 1.1     # розовите мраморни ниши
+    jamb = half - ow / 2
+    # стена около отвора
+    _seg_box(p + "JambL", coll, m["wall"], k, -half + jamb / 2, 0.2, WALL_H / 2, jamb, 0.4, WALL_H)
+    _seg_box(p + "JambR", coll, m["wall"], k, half - jamb / 2, 0.2, WALL_H / 2, jamb, 0.4, WALL_H)
+    _seg_box(p + "Header", coll, m["wall"], k, 0, 0.2, (oh + WALL_H) / 2, ow, 0.4, WALL_H - oh)
+    # профили над отвора (стъпаловиден корниз)
+    for i, (h, dy) in enumerate([(0.12, -0.06), (0.06, -0.12)]):
+        _seg_box(p + f"Cornice{i}", coll, m["dark_metal"], k, 0, dy, oh + 0.2 + i * 0.14,
+                 ow + 0.5 - i * 0.2, 0.12, h)
+    # долен цокъл по цялата стена + светеща лента
+    _seg_box(p + "Plinth", coll, m["dark_metal"], k, 0, -0.05, 0.12, w, 0.3, 0.24)
+    _seg_box(p + "PlinthLED", coll, m["led"], k, 0, -0.205, 0.26, w - 0.9, 0.01, 0.025)
+    # вътрешност на нишата
+    inner = m["alcove"] if kind == "alcove" else m["niche"]
+    _seg_box(p + "Back", coll, inner, k, 0, depth + 0.1, oh / 2, ow, 0.2, oh)
+    _seg_box(p + "SideL", coll, inner, k, -ow / 2 - 0.05, depth / 2 + 0.2, oh / 2, 0.1, depth, oh)
+    _seg_box(p + "SideR", coll, inner, k, ow / 2 + 0.05, depth / 2 + 0.2, oh / 2, 0.1, depth, oh)
+    _seg_box(p + "Top", coll, inner, k, 0, depth / 2 + 0.2, oh + 0.05, ow, depth, 0.1)
+    ledge = 0.35 if kind != "alcove" else 0.28
+    _seg_box(p + "Ledge", coll, m["pillar"], k, 0, depth / 2 + 0.1, ledge / 2, ow, depth + 0.2, ledge)
+    _seg_box(p + "LedgeLED", coll, m["led"], k, 0, -0.005, ledge - 0.03, ow - 0.1, 0.012, 0.03)
+    # хромирани лайстни отстрани на отвора (по две)
+    for side in (-1, 1):
+        for j, off in enumerate((0.03, 0.14)):
+            _seg_rod(p + f"Rod{side}{j}", coll, m["chrome"], k, side * (ow / 2 + off), -0.02,
+                     ledge, oh + 0.1)
+    _seg_box(p + "TopTrim", coll, m["chrome"], k, 0, -0.02, oh + 0.06, ow + 0.3, 0.03, 0.03)
+
+    if kind == "alcove":
+        # тъмната ниша: тънка розова светлина по долния ръб и отразяващ под
+        _seg_box(p + "AlcoveLED", coll, m["led"], k, 0, 0.3, ledge + 0.01, ow - 0.2, 0.04, 0.02)
+    else:
+        # светещи вертикални ръбове вътре в нишата + светлина, която я осветява
+        for side in (-1, 1):
+            _seg_box(p + f"EdgeLight{side}", coll, m["led_white"], k, side * (ow / 2 - 0.03), 0.25,
+                     ledge + (oh - ledge) / 2, 0.03, 0.03, oh - ledge - 0.1)
+        c, d, t, rot = _seg_frame(k)
+        data = bpy.data.lights.new(p + "NicheLight", "AREA")
+        data.shape = "RECTANGLE"
+        data.size, data.size_y = ow * 0.9, oh * 0.8
+        data.energy = 180
+        data.color = (1.0, 0.3, 0.95)
+        light = bpy.data.objects.new(p + "NicheLight", data)
+        coll.objects.link(light)
+        light.location = c + d * 0.35 + Vector((0, 0, oh / 2 + 0.2))
+        light.rotation_euler = (d).to_track_quat("-Z", "Y").to_euler()  # свети навътре
+
+
+def build_pillar(coll, m, k):
+    """Колона в ъгъла между два сегмента: камък, хромирани ленти, база и капител."""
+    a = math.radians(45 * k + 22.5)
+    r = ROOM_R / math.cos(math.radians(22.5)) - 0.1
+    pos = Vector((math.sin(a) * r, math.cos(a) * r, 0))
+    rot = (0, 0, -a)
+    inward = -Vector((math.sin(a), math.cos(a), 0))
+    side = Vector((math.cos(a), -math.sin(a), 0))
+    p = f"Pillar{k}_"
+    link(box(p + "Shaft", (0.9, 0.9, WALL_H), pos + Vector((0, 0, WALL_H / 2)), rot, m["pillar"]), coll)
+    link(box(p + "Base", (1.15, 1.15, 0.45), pos + Vector((0, 0, 0.225)), rot, m["dark_metal"]), coll)
+    link(box(p + "Base2", (1.02, 1.02, 0.15), pos + Vector((0, 0, 0.52)), rot, m["chrome"]), coll)
+    link(box(p + "Cap", (1.15, 1.15, 0.35), pos + Vector((0, 0, WALL_H - 0.6)), rot, m["dark_metal"]), coll)
+    # вертикални хромирани ленти и светещ процеп по средата на лицето
+    for s in (-0.3, 0.3):
+        q = pos + inward * 0.46 + side * s
+        link(box(p + f"Strip{s}", (0.04, 0.03, WALL_H - 1.4), q + Vector((0, 0, WALL_H / 2 - 0.05)),
+                 rot, m["chrome"]), coll)
+    q = pos + inward * 0.455
+    link(box(p + "Slot", (0.05, 0.02, WALL_H - 1.6), q + Vector((0, 0, WALL_H / 2 - 0.05)), rot,
+             m["led"]), coll)
+
+
+def build_logo_plaque(coll, m, floor_top):
+    """Голям релефен шестоъгълник с логото (колба с мехурчета) пред тъмната ниша.
+    Ако има logo.svg до .blend файла – използва него вместо вграденото лого."""
+    y, z, r, depth = ROOM_R - 0.75, 3.15, 1.55, 0.36
+    plaque = hex_prism("LogoPlaque", r, depth, (0, y, z), (math.radians(90), math.radians(30), 0),
+                       mat=m["plaque"])
+    add_bevel(plaque, 0.07, 4)
+    link(plaque, coll)
+    rim = hex_prism("LogoPlaqueRim", r + 0.08, 0.12, (0, y + 0.18, z),
+                    (math.radians(90), math.radians(30), 0), mat=m["led"])
+    link(rim, coll)  # розово сияние зад ръба
+
+    front = y - depth / 2
+    svg = os.path.join(BASE_DIR, "logo.svg")
+    if os.path.exists(svg) and _import_svg_logo(svg, coll, m, front, z, r):
+        return
+    # вградено лого: отворен кръг (колбата), течност-триъгълник и 3 мехурчета
+    ring = (circle_pts(0.08, -0.2, 0.92, 48, math.radians(118), math.radians(118 + 300)) +
+            circle_pts(0.08, -0.2, 0.7, 48, math.radians(118 + 300), math.radians(118)))
+    liquid = [(-0.48, -0.72), (0.64, -0.72), (0.08, 0.12)]
+    bubbles = [circle_pts(-0.62, 0.78, 0.2), circle_pts(-0.25, 1.05, 0.13),
+               circle_pts(-0.62, 1.18, 0.09)]
+    for name, polys in (("LogoRing", [ring]), ("LogoLiquid", [liquid]),
+                        ("LogoBubbles", bubbles)):
+        obj = extrude_polys(name, polys, 0.07, coll, m["logo"])
+        obj.location = (0, front, z)
+        add_bevel(obj, 0.015, 3)
+
+
+def _import_svg_logo(path, coll, m, front, z, r):
+    try:
+        before = set(bpy.data.objects)
+        bpy.ops.import_curve.svg(filepath=path)
+        new = [o for o in bpy.data.objects if o not in before and o.type == "CURVE"]
+        if not new:
+            return False
+        for o in new:
+            o.data.materials.clear()
+            o.data.materials.append(m["logo"])
+            link(o, coll)
+        # мащаб и позиция: логото да запълни ~65% от шестоъгълника
+        bpy.context.view_layer.update()
+        xs = [(o.matrix_world @ Vector(c)).x for o in new for c in o.bound_box]
+        ys = [(o.matrix_world @ Vector(c)).y for o in new for c in o.bound_box]
+        size = max(max(xs) - min(xs), max(ys) - min(ys)) or 1
+        s = (r * 1.3) / size
+        cx, cy = (max(xs) + min(xs)) / 2, (max(ys) + min(ys)) / 2
+        pivot = bpy.data.objects.new("LogoSVG", None)
+        coll.objects.link(pivot)
+        for o in new:
+            o.location.x -= cx
+            o.location.y -= cy
+            o.parent = pivot
+        for o in new:
+            o.data.extrude = 0.035 / s
+        pivot.scale = (s, s, s)
+        pivot.rotation_euler = (math.radians(90), 0, 0)
+        pivot.location = (0, front - 0.02, z)
+        return True
+    except Exception as err:
+        print("logo.svg не се зареди:", err)
+        return False
+
+
+def build_room(coll, m, floor_top):
+    for k in range(8):
+        build_wall_segment(coll, m, k, "alcove" if k == 0 else "niche")
+        build_pillar(coll, m, k)
+    build_logo_plaque(coll, m, floor_top)
+    # светлина за логото и мек кръг светлина около пиедестала
+    for name, loc, look, power, color, size in (
+            ("LogoKey", (0, ROOM_R - 3.2, 4.6), (0, ROOM_R - 0.7, 3.1), 250, (1, 0.6, 1), 2.0),
+            ("FloorPool", (0, 0, WALL_H - 0.4), (0, 0, 0), 300, (1, 0.5, 1), 3.0)):
+        data = bpy.data.lights.new(name, "AREA")
+        data.energy, data.color, data.size = power, color, size
+        obj = bpy.data.objects.new(name, data)
+        coll.objects.link(obj)
+        obj.location = loc
+        obj.rotation_euler = (Vector(look) - Vector(loc)).to_track_quat("-Z", "Y").to_euler()
+
+
+def build_ceiling(coll, m):
+    """Таван: тъмна плоча, греди към колоните, кръг от лампи над пиедестала."""
+    h = WALL_H
+    bpy.ops.mesh.primitive_plane_add(size=2 * ROOM_R + 4, location=(0, 0, h))
+    link(bpy.context.active_object, coll).data.materials.append(m["wall"])
+    for k in range(8):
+        a = math.radians(45 * k + 22.5)
+        length = ROOM_R / math.cos(math.radians(22.5)) - 3.0
+        mid = Vector((math.sin(a), math.cos(a), 0)) * (3.0 + length / 2)
+        link(box(f"Beam_{k}", (0.4, length, 0.45), (mid.x, mid.y, h - 0.22), (0, 0, -a),
+                 m["dark_metal"]), coll)
+        link(box(f"BeamLED_{k}", (0.05, length - 0.3, 0.01), (mid.x, mid.y, h - 0.455), (0, 0, -a),
+                 m["led"]), coll)
+    hex_band("CeilingRing", 3.1, 2.8, h - 0.6, 0.18, coll, m["dark_metal"])
+    hex_band("CeilingRingLED", 2.95, 2.88, h - 0.61, 0.01, coll, m["led_white"])
+    for i in range(12):
+        a = math.radians(30 * i)
+        pos = Vector((math.cos(a) * 2.95, math.sin(a) * 2.95, h - 0.66))
+        bpy.ops.mesh.primitive_cylinder_add(vertices=24, radius=0.11, depth=0.1, location=pos)
+        link(bpy.context.active_object, coll).data.materials.append(m["led_white"])
+        data = bpy.data.lights.new(f"Spot_{i}", "SPOT")
+        data.energy = 60
+        data.color = (1.0, 0.6, 1.0)
+        data.spot_size = math.radians(28)
+        data.spot_blend = 0.5
+        spot = bpy.data.objects.new(f"Spot_{i}", data)
+        coll.objects.link(spot)
+        spot.location = pos - Vector((0, 0, 0.08))
+        spot.rotation_euler = (Vector((0, 0, 0.2)) - spot.location).to_track_quat("-Z", "Y").to_euler()
+
+    if FOG:
+        bpy.ops.mesh.primitive_cube_add(size=1, location=(0, 0, h / 2))
+        fog = link(bpy.context.active_object, coll)
+        fog.name = "Fog"
+        fog.scale = (2 * ROOM_R - 0.6, 2 * ROOM_R - 0.6, h - 0.1)
+        mat = bpy.data.materials.new("Fog")
         mat.use_nodes = True
         nt = mat.node_tree
-        tex = nt.nodes.new("ShaderNodeTexImage")
-        tex.image = logo
-        bsdf = nt.nodes["Principled BSDF"]
-        nt.links.new(tex.outputs["Color"], bsdf.inputs["Base Color"])
-        nt.links.new(tex.outputs["Alpha"], bsdf.inputs["Alpha"])
-        bpy.ops.mesh.primitive_plane_add(size=3.0, location=(0, y - 0.17, z),
-                                         rotation=(math.radians(90), 0, 0))
-        link(bpy.context.active_object, coll).data.materials.append(mat)
-
-
-def build_pillars(coll, neon):
-    """Колони в полукръг с вертикални светещи панели + тъмни стени между тях."""
-    dark = mat_basic("PillarDark", (0.025, 0.01, 0.04), roughness=0.35, metallic=0.4)
-    panel = mat_emission("PillarLight", use_accent=True, strength=3)
-    wall = mat_basic("Wall", (0.05, 0.015, 0.08), roughness=0.6)
-    radius = 7.5
-    angles = [-80, -58, -36, -14, 14, 36, 58, 80]
-    for i, deg in enumerate(angles):
-        a = math.radians(deg)
-        pos = Vector((math.sin(a) * radius, math.cos(a) * radius, 3.0))
-        rot = (0, 0, -a)
-        link(box(f"Pillar_{i}", (0.7, 0.7, 6.0), pos, rot, mat=dark), coll)
-        front = pos - Vector((math.sin(a), math.cos(a), 0)) * 0.36
-        link(box(f"PillarLight_{i}", (0.35, 0.02, 4.6), front, rot, mat=panel), coll)
-    for i in range(len(angles) - 1):
-        a = math.radians((angles[i] + angles[i + 1]) / 2)
-        pos = Vector((math.sin(a) * (radius + 0.4), math.cos(a) * (radius + 0.4), 3.0))
-        link(box(f"Wall_{i}", (2.9, 0.15, 6.0), pos, (0, 0, -a), mat=wall), coll)
+        nt.nodes.clear()
+        out = nt.nodes.new("ShaderNodeOutputMaterial")
+        vol = nt.nodes.new("ShaderNodeVolumePrincipled")
+        vol.inputs["Density"].default_value = 0.018
+        vol.inputs["Color"].default_value = (1.0, 0.8, 1.0, 1)
+        nt.links.new(vol.outputs[0], out.inputs["Volume"])
+        fog.data.materials.append(mat)
 
 
 def build_bubbles(coll):
@@ -436,62 +867,6 @@ def build_city(coll, neon):
     wire.thickness = 0.03
 
 
-def build_ceiling(coll, neon):
-    """Таван: тъмна плоча, греди към колоните, неонови шестоъгълници и лампи над пиедестала."""
-    dark = mat_basic("Ceiling", (0.015, 0.006, 0.025), roughness=0.5, metallic=0.2)
-    beam_mat = mat_basic("CeilingBeam", (0.03, 0.012, 0.05), roughness=0.3, metallic=0.6)
-    strip = mat_emission("CeilingStrip", use_accent=True, strength=3)
-    fixture = mat_emission("LampFixture", (1.0, 0.85, 1.0), strength=20)
-    height = 6.2
-
-    bpy.ops.mesh.primitive_plane_add(size=40, location=(0, 0, height))
-    link(bpy.context.active_object, coll).data.materials.append(dark)
-
-    # греди от центъра към всяка колона, с тънка светеща лента отдолу
-    for i, deg in enumerate([-80, -58, -36, -14, 14, 36, 58, 80]):
-        a = math.radians(deg)
-        mid = Vector((math.sin(a), math.cos(a), 0)) * 4.6
-        link(box(f"Beam_{i}", (0.35, 6.2, 0.4), (mid.x, mid.y, height - 0.2),
-                 (0, 0, -a), mat=beam_mat), coll)
-        link(box(f"BeamStrip_{i}", (0.06, 5.8, 0.01), (mid.x, mid.y, height - 0.41),
-                 (0, 0, -a), mat=strip), coll)
-
-    for r in (2.0, 3.3):
-        link(hex_ring(f"CeilingNeon_{r}", r, 0.03, (0, 0, height - 0.45), mat=neon), coll)
-
-    # прожектори над пиедестала (като светлините от тавана в оригинала)
-    for i in range(6):
-        a = math.radians(60 * i + 90)
-        pos = Vector((math.cos(a) * 3.3, math.sin(a) * 3.3, height - 0.5))
-        bpy.ops.mesh.primitive_cylinder_add(vertices=24, radius=0.16, depth=0.12, location=pos)
-        link(bpy.context.active_object, coll).data.materials.append(fixture)
-        data = bpy.data.lights.new(f"Spot_{i}", "SPOT")
-        data.energy = 350
-        data.color = (1.0, 0.75, 1.0)
-        data.spot_size = math.radians(32)
-        data.spot_blend = 0.4
-        spot = bpy.data.objects.new(f"Spot_{i}", data)
-        coll.objects.link(spot)
-        spot.location = pos - Vector((0, 0, 0.1))
-        direction = Vector((0, 0, 0.3)) - spot.location
-        spot.rotation_euler = direction.to_track_quat("-Z", "Y").to_euler()
-
-    if FOG:
-        bpy.ops.mesh.primitive_cube_add(size=1, location=(0, 1, height / 2))
-        fog = link(bpy.context.active_object, coll)
-        fog.name = "Fog"
-        fog.scale = (22, 22, height - 0.05)
-        mat = bpy.data.materials.new("Fog")
-        mat.use_nodes = True
-        nt = mat.node_tree
-        nt.nodes.clear()
-        out = nt.nodes.new("ShaderNodeOutputMaterial")
-        vol = nt.nodes.new("ShaderNodeVolumePrincipled")
-        vol.inputs["Density"].default_value = 0.012
-        nt.links.new(vol.outputs[0], out.inputs["Volume"])
-        fog.data.materials.append(mat)
-
-
 def build_plate(top_z):
     img = load_image(PLATE_FILE) or placeholder_plate()
     w, h = img.size if img.size[0] else (1920, 1080)
@@ -513,13 +888,15 @@ def build_cameras():
     cams = {}
     setups = {
         # име: (lens, старт, край, точка на гледане)
-        "CAM_WIDE": (24, (0, -10.5, 1.7), (0, -9.0, 1.9), (0, 0, 1.8)),
-        "CAM_MEDIUM": (45, (0.6, -6.2, 1.55), (0.3, -5.6, 1.6), (0, 0, 1.45)),
-        "CAM_CLOSE": (85, (0.9, -5.6, 1.75), (0.75, -5.2, 1.75), (0.35, 0, 1.75)),
+        # като кадъра от оригинала: леко отгоре, логото над главата
+        "CAM_REF": (28, (0, -5.6, 2.05), (0, -5.3, 2.05), (0, 1.5, 1.6)),
+        "CAM_WIDE": (16, (0, -6.3, 2.5), (0, -5.8, 2.4), (0, 0, 2.2)),
+        "CAM_MEDIUM": (40, (0.5, -5.0, 1.6), (0.3, -4.6, 1.6), (0, 0, 1.45)),
+        "CAM_CLOSE": (85, (0.8, -4.6, 1.75), (0.7, -4.3, 1.75), (0.3, 0, 1.7)),
         # кадри „отвътре“ за празното студио
-        "CAM_LOW": (18, (0.4, -4.2, 0.35), (0.0, -3.6, 0.35), (0, 3, 3.6)),
-        "CAM_SIDE": (24, (6.0, -3.0, 2.0), (5.0, -3.8, 2.0), (-0.8, 2.5, 2.4)),
-        "CAM_HIGH": (20, (-6.5, -7.0, 5.4), (-5.5, -7.5, 5.2), (0, 1.0, 1.2)),
+        "CAM_LOW": (16, (0.4, -3.8, 0.3), (0.0, -3.4, 0.3), (0, 4, 3.4)),
+        "CAM_SIDE": (20, (4.6, -3.8, 2.0), (4.0, -4.3, 2.0), (-1.0, 2.5, 2.4)),
+        "CAM_HIGH": (16, (-4.5, -5.0, 5.5), (-4.0, -5.3, 5.4), (0, 1.0, 1.0)),
     }
     end = FPS * DURATION_SEC
     for name, (lens, start, finish, look) in setups.items():
@@ -592,11 +969,9 @@ def setup_world_and_render():
                           ("taa_render_samples", 64)):
             if hasattr(ee, attr):
                 setattr(ee, attr, val)
-    scene.view_settings.view_transform = "AgX"
-    try:
-        scene.view_settings.look = "AgX - Punchy"  # по-наситен неон
-    except TypeError:
-        pass
+    # Standard пази наситеното маджента (AgX/Filmic го избелват към лилаво-бяло)
+    scene.view_settings.view_transform = "Standard"
+    scene.view_settings.look = "None"
 
     # bloom (сиянието около неона) през композитора
     try:
@@ -637,12 +1012,12 @@ def main():
     props = collection("PROPS")
     lights = collection("LIGHTS")
 
-    top_z = build_platform(studio, neon)
-    build_floor(studio, neon)
-    build_backdrop(studio, neon)
-    build_pillars(studio, neon)
+    m = studio_materials()
+    floor_top = build_hex_floor(studio, m)
+    top_z = build_platform(studio, m, floor_top)
+    build_room(studio, m, floor_top)
     if CEILING:
-        build_ceiling(studio, neon)
+        build_ceiling(studio, m)
 
     city_platform = collection("CITY_PLATFORM")
     city.children.link(city_platform)
