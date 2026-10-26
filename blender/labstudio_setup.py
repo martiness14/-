@@ -35,6 +35,10 @@ PHONE_SCREEN_FILE = os.path.join(BASE_DIR, "screen.png")
 ACCENT = (0.85, 0.18, 1.0)      # основен неон (лилаво); за „алармата“ -> (1, 0.05, 0.05)
 BACKDROP = (1.0, 0.62, 0.98)    # светлият розов шестоъгълник отзад
 ACTIVE_SET = "STUDIO"           # "STUDIO" или "CITY" (неоновият град/карта)
+SHOW_PRESENTER = True           # False = празна сцена (без водещия)
+SHOW_PROPS = True               # False = без балончетата и телефона
+CEILING = True                  # таван с греди и лампи – да изглежда като затворена зала
+FOG = False                     # лека мъгла -> видими лъчи от лампите (по-бавен рендер)
 
 FPS = 25
 DURATION_SEC = 30               # дължина на тестовата анимация; после я сменяш
@@ -432,6 +436,62 @@ def build_city(coll, neon):
     wire.thickness = 0.03
 
 
+def build_ceiling(coll, neon):
+    """Таван: тъмна плоча, греди към колоните, неонови шестоъгълници и лампи над пиедестала."""
+    dark = mat_basic("Ceiling", (0.015, 0.006, 0.025), roughness=0.5, metallic=0.2)
+    beam_mat = mat_basic("CeilingBeam", (0.03, 0.012, 0.05), roughness=0.3, metallic=0.6)
+    strip = mat_emission("CeilingStrip", use_accent=True, strength=3)
+    fixture = mat_emission("LampFixture", (1.0, 0.85, 1.0), strength=20)
+    height = 6.2
+
+    bpy.ops.mesh.primitive_plane_add(size=40, location=(0, 0, height))
+    link(bpy.context.active_object, coll).data.materials.append(dark)
+
+    # греди от центъра към всяка колона, с тънка светеща лента отдолу
+    for i, deg in enumerate([-80, -58, -36, -14, 14, 36, 58, 80]):
+        a = math.radians(deg)
+        mid = Vector((math.sin(a), math.cos(a), 0)) * 4.6
+        link(box(f"Beam_{i}", (0.35, 6.2, 0.4), (mid.x, mid.y, height - 0.2),
+                 (0, 0, -a), mat=beam_mat), coll)
+        link(box(f"BeamStrip_{i}", (0.06, 5.8, 0.01), (mid.x, mid.y, height - 0.41),
+                 (0, 0, -a), mat=strip), coll)
+
+    for r in (2.0, 3.3):
+        link(hex_ring(f"CeilingNeon_{r}", r, 0.03, (0, 0, height - 0.45), mat=neon), coll)
+
+    # прожектори над пиедестала (като светлините от тавана в оригинала)
+    for i in range(6):
+        a = math.radians(60 * i + 90)
+        pos = Vector((math.cos(a) * 3.3, math.sin(a) * 3.3, height - 0.5))
+        bpy.ops.mesh.primitive_cylinder_add(vertices=24, radius=0.16, depth=0.12, location=pos)
+        link(bpy.context.active_object, coll).data.materials.append(fixture)
+        data = bpy.data.lights.new(f"Spot_{i}", "SPOT")
+        data.energy = 350
+        data.color = (1.0, 0.75, 1.0)
+        data.spot_size = math.radians(32)
+        data.spot_blend = 0.4
+        spot = bpy.data.objects.new(f"Spot_{i}", data)
+        coll.objects.link(spot)
+        spot.location = pos - Vector((0, 0, 0.1))
+        direction = Vector((0, 0, 0.3)) - spot.location
+        spot.rotation_euler = direction.to_track_quat("-Z", "Y").to_euler()
+
+    if FOG:
+        bpy.ops.mesh.primitive_cube_add(size=1, location=(0, 1, height / 2))
+        fog = link(bpy.context.active_object, coll)
+        fog.name = "Fog"
+        fog.scale = (22, 22, height - 0.05)
+        mat = bpy.data.materials.new("Fog")
+        mat.use_nodes = True
+        nt = mat.node_tree
+        nt.nodes.clear()
+        out = nt.nodes.new("ShaderNodeOutputMaterial")
+        vol = nt.nodes.new("ShaderNodeVolumePrincipled")
+        vol.inputs["Density"].default_value = 0.012
+        nt.links.new(vol.outputs[0], out.inputs["Volume"])
+        fog.data.materials.append(mat)
+
+
 def build_plate(top_z):
     img = load_image(PLATE_FILE) or placeholder_plate()
     w, h = img.size if img.size[0] else (1920, 1080)
@@ -443,6 +503,7 @@ def build_plate(top_z):
     plate.scale = (PLATE_HEIGHT * aspect, PLATE_HEIGHT, 1)
     plate.location = (0, 0, top_z + PLATE_HEIGHT / 2 - PLATE_FEET_OFFSET)
     plate.data.materials.append(mat_plate(img, PLATE_PREKEYED))
+    link(plate, collection("PRESENTER"))
     return plate
 
 
@@ -455,6 +516,10 @@ def build_cameras():
         "CAM_WIDE": (24, (0, -10.5, 1.7), (0, -9.0, 1.9), (0, 0, 1.8)),
         "CAM_MEDIUM": (45, (0.6, -6.2, 1.55), (0.3, -5.6, 1.6), (0, 0, 1.45)),
         "CAM_CLOSE": (85, (0.9, -5.6, 1.75), (0.75, -5.2, 1.75), (0.35, 0, 1.75)),
+        # кадри „отвътре“ за празното студио
+        "CAM_LOW": (18, (0.4, -4.2, 0.35), (0.0, -3.6, 0.35), (0, 3, 3.6)),
+        "CAM_SIDE": (24, (6.0, -3.0, 2.0), (5.0, -3.8, 2.0), (-0.8, 2.5, 2.4)),
+        "CAM_HIGH": (20, (-6.5, -7.0, 5.4), (-5.5, -7.5, 5.2), (0, 1.0, 1.2)),
     }
     end = FPS * DURATION_SEC
     for name, (lens, start, finish, look) in setups.items():
@@ -528,9 +593,10 @@ def setup_world_and_render():
             if hasattr(ee, attr):
                 setattr(ee, attr, val)
     scene.view_settings.view_transform = "AgX"
-    scene.view_settings.look = "AgX - Punchy" if "AgX - Punchy" in [
-        i.identifier for i in scene.view_settings.bl_rna.properties["look"].enum_items_static
-    ] else "None"
+    try:
+        scene.view_settings.look = "AgX - Punchy"  # по-наситен неон
+    except TypeError:
+        pass
 
     # bloom (сиянието около неона) през композитора
     try:
@@ -575,6 +641,8 @@ def main():
     build_floor(studio, neon)
     build_backdrop(studio, neon)
     build_pillars(studio, neon)
+    if CEILING:
+        build_ceiling(studio, neon)
 
     city_platform = collection("CITY_PLATFORM")
     city.children.link(city_platform)
@@ -596,6 +664,8 @@ def main():
     layers = bpy.context.view_layer.layer_collection.children
     layers["STUDIO"].exclude = ACTIVE_SET != "STUDIO"
     layers["CITY"].exclude = ACTIVE_SET != "CITY"
+    layers["PRESENTER"].exclude = not SHOW_PRESENTER
+    layers["PROPS"].exclude = not SHOW_PROPS
     bpy.context.scene.frame_set(1)
     print("Готово: студиото е сглобено.")
 
