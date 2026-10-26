@@ -26,3 +26,8 @@ python3 src/charts.py      # фигури (matplotlib)
 node src/build.js          # DOCX (docx-js)
 python3 src/finalize.py    # огледални полета и PDF (LibreOffice)
 ```
+
+## Виртуално студио в Blender (грийн скрийн)
+- `blender/КОНЦЕПЦИЯ.md` – разбор на примерното видео и план как да се направи същото с нов запис
+- `blender/labstudio_setup.py` – скрипт, който сглобява студиото в Blender (Scripting → Run Script)
+- `blender/preview/` – пробни рендери
