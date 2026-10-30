@@ -69,7 +69,7 @@
 <div class="wrap">
   <header>
     <h1>Монетомат за <em>50 цента</em></h1>
-    <p class="lead">Изсипваш монетите в бункера и въртиш дръжката. Дискът ги вдига една по една и ги нарежда в тръба. С едно бутване на буталото в чашката падат точно 10 монети (5 €), а с две бутвания 10 €.</p>
+    <p class="lead">Изсипваш до 500 монети в бункера и въртиш дръжката. Дискът ги вдига една по една и ги нарежда в тръба. Лявото бутало пуска точно 10 монети (5 €), а предното точно 20 монети (10 €).</p>
   </header>
 
   <div class="stage" id="stage">
@@ -78,8 +78,9 @@
 
   <div class="controls">
     <button class="btn primary" id="crank" type="button" aria-pressed="false">Върти дръжката</button>
-    <button class="btn primary" id="push" type="button">Бутни: 5 €</button>
-    <button class="btn" id="empty" type="button">Изсипи чашката</button>
+    <button class="btn primary" id="pushA" type="button">Ляво бутало: 5 €</button>
+    <button class="btn primary" id="pushB" type="button">Предно бутало: 10 €</button>
+    <button class="btn" id="empty" type="button">Изсипи чашките</button>
     <span class="readout" id="readout"></span>
   </div>
 
@@ -87,29 +88,25 @@
     <section>
       <h2>Как се работи</h2>
       <ol class="steps">
-        <li><div><strong>Изсипи монети в бункера</strong><p>Влизат около 150–200 монети наведнъж. Дискът е наклонен на 45°, затова монетите се събират долу върху него.</p></div></li>
-        <li><div><strong>Върти дръжката</strong><p>Дискът има 5 гнезда, дебели 2,2 мм. Монетата е 2,38 мм, затова във всяко гнездо влиза само 1 монета. Горе гнездото минава над дупка, монетата пада в тръбата и ляга върху останалите.</p></div></li>
-        <li><div><strong>Бутни буталото надясно</strong><p>Изходът отдолу е висок 10,5 монети. Буталото избутва долните 10 в чашката, а 11-тата се опира в ръба и остава в тръбата.</p></div></li>
-        <li><div><strong>Дръпни буталото обратно</strong><p>Купчинката пада надолу и е готова за следващите 5 €. През прозорчето отпред виждаш колко монети има в тръбата.</p></div></li>
+        <li><div><strong>Изсипи монети в бункера</strong><p>Влизат около 400–500 монети (200–250 €). Дискът е наклонен на 45°, затова монетите се събират долу върху него.</p></div></li>
+        <li><div><strong>Върти дръжката</strong><p>Дискът има 8 гнезда, дебели 2,2 мм. Монетата е 2,38 мм, затова във всяко гнездо влиза само 1 монета. Горе монетата пада през дупка в тръбата. Тръбата побира около 42 монети.</p></div></li>
+        <li><div><strong>Избери сумата</strong><p>Лявото бутало буташ надясно: излизат 10 монети (5 €) в дясната чашка. Предното бутало буташ навътре: излизат 20 монети (10 €) в задната чашка. Следващата монета винаги се опира в ръба и остава.</p></div></li>
+        <li><div><strong>Дръпни буталото обратно</strong><p>Купчинката пада надолу и машината е готова за следващата пачка. През прозорчето отдясно виждаш колко монети има в тръбата.</p></div></li>
       </ol>
     </section>
     <section>
-      <h2>Части за принтиране</h2>
+      <h2>Плочи за Bambu A1</h2>
       <div class="table-scroll">
         <table>
-          <thead><tr><th>Файл</th><th>Размер, мм</th></tr></thead>
+          <thead><tr><th>Плоча</th><th>Части</th></tr></thead>
           <tbody>
-            <tr><td>1_osnova.stl</td><td class="n">140 × 107 × 155</td></tr>
-            <tr><td>2_bunker.stl</td><td class="n">116 × 130 × 59</td></tr>
-            <tr><td>3_disk.stl</td><td class="n">Ø100 × 81</td></tr>
-            <tr><td>4_tryba.stl</td><td class="n">Ø64 × 123</td></tr>
-            <tr><td>5_butalo.stl</td><td class="n">74 × 25 × 22</td></tr>
-            <tr><td>6_drazhka.stl</td><td class="n">20 × 30 × 12</td></tr>
-            <tr><td>7_chashka.stl</td><td class="n">Ø58 × 34</td></tr>
+            <tr><td>1 Основа</td><td>основа 164 × 173 × 176, 2 чашки, 2 дръжки</td></tr>
+            <tr><td>2 Бункер</td><td>бункер 160 × 195 × 96</td></tr>
+            <tr><td>3 Механизъм</td><td>диск Ø140, тръба, 2 бутала</td></tr>
           </tbody>
         </table>
       </div>
-      <p class="note">Допълнително: болт M8 × 80, шайба M8 и самоконтрираща гайка M8 (за оста на диска), плюс малко лепило за дръжката и щифтовете на бункера. Всички части се печатат без подпори.</p>
+      <p class="note">Файл: monetomat_A1.3mf (един проект с 3 плочи). Допълнително трябват болт M8 × 65, шайба M8 и самоконтрираща гайка M8 за оста на диска, плюс лепило за дръжките и бункера. Цялата машина е висока около 30 см.</p>
     </section>
   </div>
 </div>
@@ -122,7 +119,7 @@
 (function () {
   const stage = document.getElementById('stage');
   if (!window.THREE || !THREE.STLLoader || !THREE.OrbitControls || !window.MACHINE) {
-    stage.insertAdjacentHTML('beforeend', '<div class="err">3D визуализацията не успя да се зареди. STL файловете са в папка coin-counter/mashina/stl.</div>');
+    stage.insertAdjacentHTML('beforeend', '<div class="err">3D визуализацията не успя да се зареди. Файловете са в папка coin-counter/mashina.</div>');
     return;
   }
   const K = MACHINE.c, T = K.COIN_T, R = K.COIN_D / 2;
@@ -137,10 +134,10 @@
   stage.prepend(renderer.domElement);
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(35, 16 / 10, 1, 4000);
-  camera.position.set(-230, 300, 380);
+  camera.position.set(-330, 380, 470);
   const controls = new THREE.OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
-  controls.target.set(10, 100, -25);
+  controls.target.set(0, 130, -30);
 
   scene.add(new THREE.HemisphereLight(0xffffff, 0x445550, 0.8));
   const sun = new THREE.DirectionalLight(0xffffff, 0.7);
@@ -174,13 +171,13 @@
   // Координати като в generate.py (Z нагоре); групата ги завърта към Y нагоре на three.js
   const root = new THREE.Group();
   root.rotation.x = -Math.PI / 2;
-  root.position.set(0, 0, 0);
   scene.add(root);
 
   root.add(new THREE.Mesh(geo('base'), mat.frame));
   root.add(new THREE.Mesh(geo('hopper'), mat.clear));
   root.add(new THREE.Mesh(geo('magazine'), mat.clear));
-  root.add(new THREE.Mesh(geo('cup'), mat.frame));
+  root.add(new THREE.Mesh(geo('cupA'), mat.frame));
+  root.add(new THREE.Mesh(geo('cupB'), mat.frame));
 
   // диск: група в координатите на плочата, въртим около нейната Z
   const discFrame = new THREE.Group();
@@ -194,7 +191,6 @@
   const coinGeo = new THREE.CylinderGeometry(R, R, T * 0.96, 40);
   const flatCoin = () => { const m = new THREE.Mesh(coinGeo, mat.coin); m.rotation.x = Math.PI / 2; return m; };
 
-  // монети в гнездата (въртят се с диска)
   const pocketCoins = [];
   for (let i = 0; i < K.POCKETS; i++) {
     const a = 2 * Math.PI * i / K.POCKETS;
@@ -203,24 +199,22 @@
     spinner.add(m);
     pocketCoins.push({ mesh: m, a0: a, last: null });
   }
-  // купчина в долната част на бункера (неподвижна спрямо плочата)
+  // купчина в долната част на бункера
   let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-  for (let i = 0; i < 26; i++) {
+  for (let i = 0; i < 60; i++) {
     const m = flatCoin();
-    const ang = Math.PI * (1.15 + 0.7 * rnd()), rr = 18 + 26 * rnd();
-    m.position.set(rr * Math.cos(ang), rr * Math.sin(ang) - 6, 2.2 + T * (1 + Math.floor(i / 9)) + rnd());
+    const ang = Math.PI * (1.1 + 0.8 * rnd()), rr = 20 + 42 * rnd();
+    m.position.set(rr * Math.cos(ang), rr * Math.sin(ang) - 8, 2.2 + T * (1 + Math.floor(i / 12)) + rnd() * 2);
     m.rotation.z = rnd() * 0.3;
     m.rotation.y = (rnd() - 0.5) * 0.4;
     discFrame.add(m);
   }
 
-  // бутало + дръжка
-  const pusher = new THREE.Group();
-  root.add(pusher);
-  const pm = new THREE.Mesh(geo('pusher'), mat.part);
-  pm.position.set(K.PUSHER_X, K.MAG_Y, K.PUSHER_Z);
-  pusher.add(pm);
-  pusher.add(new THREE.Mesh(geo('handle'), mat.part));
+  // бутала + дръжки (в световни координати, прибрани)
+  const pusherA = new THREE.Group(), pusherB = new THREE.Group();
+  root.add(pusherA, pusherB);
+  pusherA.add(new THREE.Mesh(geo('pusherA'), mat.part), new THREE.Mesh(geo('handleA'), mat.part));
+  pusherB.add(new THREE.Mesh(geo('pusherB'), mat.part), new THREE.Mesh(geo('handleB'), mat.part));
 
   // купчинка в тръбата
   const stackGroup = new THREE.Group();
@@ -233,41 +227,45 @@
     stackGroup.add(m);
     stack.push(m);
   }
-  for (let i = 0; i < 24; i++) addStackCoin();
+  for (let i = 0; i < 34; i++) addStackCoin();
 
-  // чашката
-  const cupCoins = [];
-  let cupEuro = 0;
-  function addCupCoin() {
-    if (cupCoins.length >= 60) return;
+  const cups = { A: { xy: K.CUP_A, coins: [], euro: 0 }, B: { xy: K.CUP_B, coins: [], euro: 0 } };
+  function addCupCoin(cup) {
+    if (cup.coins.length >= 60) return;
     const m = flatCoin();
     const a = rnd() * Math.PI * 2, rr = rnd() * 12;
-    m.position.set(K.CUP_X + rr * Math.cos(a), K.MAG_Y + rr * Math.sin(a), 6 + T * (cupCoins.length / 4) + 0.5);
+    m.position.set(cup.xy[0] + rr * Math.cos(a), cup.xy[1] + rr * Math.sin(a), 6 + T * (cup.coins.length / 4) + 0.5);
     m.rotation.x = Math.PI / 2 + (rnd() - 0.5) * 0.5;
     root.add(m);
-    cupCoins.push(m);
+    cup.coins.push(m);
   }
 
-  // падаща монета от дупката към тръбата
-  const exitPos = new THREE.Vector3(0, (K.POCKET_R + 5) * S, K.C_Z + (K.POCKET_R - 5) * S);
+  const exitPos = new THREE.Vector3(0, (K.POCKET_R + K.PLATE_T) * S, K.C_Z + (K.POCKET_R - K.PLATE_T) * S);
   const falling = [];
 
   const readout = document.getElementById('readout');
   const crankBtn = document.getElementById('crank');
-  const pushBtn = document.getElementById('push');
+  const btnA = document.getElementById('pushA'), btnB = document.getElementById('pushB');
   let cranking = false, angle = 0, push = null;
   function update() {
     const full = stack.length + falling.length >= MAX_STACK;
-    readout.innerHTML = `В тръбата: ${stack.length} монети${full ? ' <span class="full">(пълна)</span>' : ''} · В чашката: <b>${cupEuro} €</b>`;
-    pushBtn.disabled = !!push || stack.length < K.COINS_PER_PUSH;
+    readout.innerHTML = `В тръбата: ${stack.length} монети${full ? ' <span class="full">(пълна)</span>' : ''} · Чашки: <b>${cups.A.euro} €</b> + <b>${cups.B.euro} €</b>`;
+    btnA.disabled = !!push || stack.length < K.COINS_A;
+    btnB.disabled = !!push || stack.length < K.COINS_B;
   }
   crankBtn.onclick = () => { cranking = !cranking; crankBtn.setAttribute('aria-pressed', String(cranking)); crankBtn.textContent = cranking ? 'Спри' : 'Върти дръжката'; };
-  pushBtn.onclick = () => {
-    if (push || stack.length < K.COINS_PER_PUSH) return;
-    push = { t: 0, batch: stack.splice(0, K.COINS_PER_PUSH) };
+  function startPush(which) {
+    const n = which === 'A' ? K.COINS_A : K.COINS_B;
+    if (push || stack.length < n) return;
+    push = { t: 0, which, n, batch: stack.splice(0, n), group: which === 'A' ? pusherA : pusherB, axis: which === 'A' ? 'x' : 'y' };
+    update();
+  }
+  btnA.onclick = () => startPush('A');
+  btnB.onclick = () => startPush('B');
+  document.getElementById('empty').onclick = () => {
+    Object.values(cups).forEach(c => { c.coins.forEach(m => root.remove(m)); c.coins.length = 0; c.euro = 0; });
     update();
   };
-  document.getElementById('empty').onclick = () => { cupCoins.forEach(m => root.remove(m)); cupCoins.length = 0; cupEuro = 0; update(); };
   update();
 
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -286,23 +284,19 @@
     const dt = Math.min(clock.getDelta(), 0.05);
 
     if (cranking) {
-      angle += dt * 2.6;
+      angle += dt * 2.2;
       spinner.rotation.z = angle;
       pocketCoins.forEach(p => {
-        const a = ((p.a0 + angle) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
-        const deg = a * 180 / Math.PI;
-        // гнездото е пълно от дъното (270°) до горе (90°), после е празно
-        const loaded = deg >= 250 || deg < 90;
-        if (p.last !== null && p.last < 90 && deg >= 90 && p.mesh.visible) {
-          if (stack.length + falling.length < MAX_STACK) {
-            const m = flatCoin();
-            m.position.copy(exitPos);
-            root.add(m);
-            falling.push({ m, t: 0, from: exitPos.clone() });
-          } else loaded || (p.keep = true); // тръбата е пълна – монетата остава в гнездото
+        const deg = (((p.a0 + angle) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI) * 180 / Math.PI;
+        if (p.last !== null && p.last < 90 && deg >= 90 && p.mesh.visible && stack.length + falling.length < MAX_STACK) {
+          const m = flatCoin();
+          m.position.copy(exitPos);
+          root.add(m);
+          falling.push({ m, t: 0 });
+          p.empty = true;
         }
-        p.mesh.visible = loaded || !!p.keep;
-        if (deg >= 250 && deg < 260) p.keep = false;
+        if (deg >= 250 && deg < 270) p.empty = false;   // гнездото минава през купа и се пълни
+        p.mesh.visible = !p.empty;
         p.last = deg;
       });
     }
@@ -311,7 +305,7 @@
       const f = falling[i];
       f.t += dt / 0.35;
       const target = new THREE.Vector3(0, K.MAG_Y, stackZ(stack.length));
-      f.m.position.lerpVectors(f.from, target, Math.min(1, f.t * f.t));
+      f.m.position.lerpVectors(exitPos, target, Math.min(1, f.t * f.t));
       if (f.t >= 1) { root.remove(f.m); falling.splice(i, 1); addStackCoin(); update(); }
     }
 
@@ -319,27 +313,30 @@
       push.t += dt;
       const P = 0.45, D = 0.3, B = 0.4;
       const tt = reduce ? P + D + B : push.t;
-      let x;
-      if (tt < P) x = ease(tt / P) * K.STROKE;
-      else if (tt < P + D) x = K.STROKE;
-      else x = K.STROKE * (1 - ease(Math.min(1, (tt - P - D) / B)));
-      pusher.position.x = x;
+      const cup = cups[push.which];
+      let d;
+      if (tt < P) d = ease(tt / P) * K.STROKE;
+      else if (tt < P + D) d = K.STROKE;
+      else d = K.STROKE * (1 - ease(Math.min(1, (tt - P - D) / B)));
+      push.group.position[push.axis] = d;
       push.batch.forEach((m, i) => {
-        if (tt < P) m.position.x = x;
+        if (tt < P) { m.position[push.axis] = (push.axis === 'x' ? 0 : K.MAG_Y) + d; }
         else {
           const k = Math.min(1, (tt - P) / D);
-          m.position.x = K.STROKE + (K.CUP_X - K.STROKE) * k;
+          const from = push.axis === 'x' ? [K.STROKE, K.MAG_Y] : [0, K.MAG_Y + K.STROKE];
+          m.position.x = from[0] + (cup.xy[0] - from[0]) * k;
+          m.position.y = from[1] + (cup.xy[1] - from[1]) * k;
           m.position.z = stackZ(i) + (6 - stackZ(i)) * k * k;
         }
       });
       if (tt >= P + D && !push.dropped) {
         push.dropped = true;
         push.batch.forEach(m => stackGroup.remove(m));
-        for (let i = 0; i < K.COINS_PER_PUSH; i++) addCupCoin();
-        cupEuro += K.COINS_PER_PUSH / 2;
+        for (let i = 0; i < push.n; i++) addCupCoin(cup);
+        cup.euro += push.n / 2;
       }
       if (tt >= P + D) stack.forEach((m, i) => { m.position.z += (stackZ(i) - m.position.z) * Math.min(1, dt * 10); });
-      if (tt >= P + D + B) { push = null; pusher.position.x = 0; update(); }
+      if (tt >= P + D + B) { push.group.position[push.axis] = 0; push = null; update(); }
     }
 
     controls.update();
