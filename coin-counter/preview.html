@@ -1,10 +1,10 @@
 <meta charset="utf-8">
-<title>Броач за 50 цента</title>
+<title>Монетомат 50 цента</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-  /* Layout: работилнична карта – 3D сцената е главното, под нея стъпки и размери в мрежа */
+  /* Layout: работилнична карта – 3D машината е главното, под нея бутони, стъпки и части */
   :root {
     --bg: #eef0ee;
     --panel: #ffffff;
@@ -14,6 +14,7 @@
     --brass: #b3871f;
     --plastic: #2f7d6d;
     --scene: #dfe4e1;
+    --warn: #b4492f;
     --display: "Unbounded", "Arial Black", sans-serif;
     --body: "IBM Plex Sans", "Segoe UI", Roboto, sans-serif;
     --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
@@ -21,12 +22,12 @@
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       --bg: #141917; --panel: #1c2320; --ink: #e6ebe8; --muted: #9aa7a2; --line: #2e3834;
-      --brass: #d9a93a; --plastic: #4fb39c; --scene: #222a27; color-scheme: dark;
+      --brass: #d9a93a; --plastic: #4fb39c; --scene: #222a27; --warn: #e07a5f; color-scheme: dark;
     }
   }
   :root[data-theme="dark"] {
     --bg: #141917; --panel: #1c2320; --ink: #e6ebe8; --muted: #9aa7a2; --line: #2e3834;
-    --brass: #d9a93a; --plastic: #4fb39c; --scene: #222a27; color-scheme: dark;
+    --brass: #d9a93a; --plastic: #4fb39c; --scene: #222a27; --warn: #e07a5f; color-scheme: dark;
   }
   body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.55; }
   .wrap { max-width: 1080px; margin: 0 auto; padding-block: 28px 48px;
@@ -34,21 +35,21 @@
     display: grid; gap: 22px; }
   h1 { font-family: var(--display); font-weight: 700; font-size: clamp(24px, 4vw, 36px); line-height: 1.1; margin: 0; text-wrap: balance; }
   h1 em { font-style: normal; color: var(--brass); }
-  .lead { margin: 6px 0 0; color: var(--muted); max-width: 62ch; }
-  .stage { position: relative; background: var(--scene); border-radius: 14px; overflow: hidden; aspect-ratio: 16 / 9; max-width: 100%; min-height: 300px; }
+  .lead { margin: 6px 0 0; color: var(--muted); max-width: 64ch; }
+  .stage { position: relative; background: var(--scene); border-radius: 14px; overflow: hidden; aspect-ratio: 16 / 10; max-width: 100%; min-height: 320px; }
   .stage canvas { display: block; width: 100%; height: 100%; touch-action: none; }
   .hint { position: absolute; left: 12px; bottom: 10px; font: 12px var(--mono); color: var(--muted); pointer-events: none; }
   .err { position: absolute; inset: 0; display: grid; place-items: center; padding: 20px; text-align: center; color: var(--muted); }
   .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 3px; background: var(--panel); }
-  .seg button, .btn { font: 600 14px var(--body); border: 0; background: transparent; color: var(--ink); padding: 7px 14px; border-radius: 999px; cursor: pointer; }
-  .seg button[aria-pressed="true"] { background: var(--plastic); color: #fff; }
-  .btn { border: 1px solid var(--line); background: var(--panel); }
-  .btn[aria-pressed="true"] { border-color: var(--brass); color: var(--brass); }
+  .btn { font: 600 14px var(--body); border: 1px solid var(--line); background: var(--panel); color: var(--ink); padding: 8px 16px; border-radius: 999px; cursor: pointer; }
+  .btn.primary { background: var(--plastic); border-color: var(--plastic); color: #fff; }
+  .btn[aria-pressed="true"] { border-color: var(--brass); color: var(--brass); background: var(--panel); }
+  .btn:disabled { opacity: .45; cursor: default; }
   button:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
   .readout { margin-left: auto; font: 500 14px var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
   .readout b { color: var(--brass); font-weight: 500; }
-  .grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 22px; }
+  .readout .full { color: var(--warn); }
+  .grid { display: grid; grid-template-columns: 1.25fr 1fr; gap: 22px; }
   @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } .readout { margin-left: 0; width: 100%; } }
   section { min-width: 0; }
   h2 { font-family: var(--display); font-weight: 500; font-size: 17px; margin: 0 0 12px; }
@@ -59,17 +60,16 @@
   ol.steps p { margin: 2px 0 0; color: var(--muted); }
   .table-scroll { overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
-  th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
   th { font: 600 11px var(--body); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
   td.n { font-family: var(--mono); white-space: nowrap; }
   .note { font-size: 13px; color: var(--muted); margin: 10px 0 0; }
-  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 
 <div class="wrap">
   <header>
-    <h1>Броач-тава за монети от <em>50 цента</em></h1>
-    <p class="lead">Изсипваш шепа монети, разклащаш и всяка касетка се пълни с точно 20 монети (10 €) или 10 монети (5 €). Повече не влизат. Вадиш пълните касетки и всяка е готова пачка за ресто.</p>
+    <h1>Монетомат за <em>50 цента</em></h1>
+    <p class="lead">Изсипваш монетите в бункера и въртиш дръжката. Дискът ги вдига една по една и ги нарежда в тръба. С едно бутване на буталото в чашката падат точно 10 монети (5 €), а с две бутвания 10 €.</p>
   </header>
 
   <div class="stage" id="stage">
@@ -77,12 +77,9 @@
   </div>
 
   <div class="controls">
-    <div class="seg" role="group" aria-label="Размер на пачката">
-      <button id="v10" type="button" aria-pressed="true">Пачка 10 €</button>
-      <button id="v5" type="button" aria-pressed="false">Пачка 5 €</button>
-    </div>
-    <button class="btn" id="lift" type="button" aria-pressed="false">Извади касетките</button>
-    <button class="btn" id="shake" type="button">Разклати</button>
+    <button class="btn primary" id="crank" type="button" aria-pressed="false">Върти дръжката</button>
+    <button class="btn primary" id="push" type="button">Бутни: 5 €</button>
+    <button class="btn" id="empty" type="button">Изсипи чашката</button>
     <span class="readout" id="readout"></span>
   </div>
 
@@ -90,26 +87,29 @@
     <section>
       <h2>Как се работи</h2>
       <ol class="steps">
-        <li><div><strong>Изсипи шепа монети в тавата</strong><p>Около 1,5 пъти повече, отколкото събират касетките: за 12 касетки по 10 € това са приблизително 350 монети.</p></div></li>
-        <li><div><strong>Разклати наляво-надясно 5–10 секунди</strong><p>Монетите се изправят на ребро и падат в улеите. Когато улеят е пълен, 21-вата монета няма място и остава отгоре.</p></div></li>
-        <li><div><strong>Наклони тавата напред</strong><p>Излишните монети се изсипват през ниската предна стена обратно в кутията. Пълните касетки стоят на място, защото челните им стени ги държат.</p></div></li>
-        <li><div><strong>Извади касетките</strong><p>Хвани ги за двете уши или бутни с пръст отдолу през дупката. Всяка касетка е една пачка, изсипваш я директно в ръката на клиента.</p></div></li>
+        <li><div><strong>Изсипи монети в бункера</strong><p>Влизат около 150–200 монети наведнъж. Дискът е наклонен на 45°, затова монетите се събират долу върху него.</p></div></li>
+        <li><div><strong>Върти дръжката</strong><p>Дискът има 5 гнезда, дебели 2,2 мм. Монетата е 2,38 мм, затова във всяко гнездо влиза само 1 монета. Горе гнездото минава над дупка, монетата пада в тръбата и ляга върху останалите.</p></div></li>
+        <li><div><strong>Бутни буталото надясно</strong><p>Изходът отдолу е висок 10,5 монети. Буталото избутва долните 10 в чашката, а 11-тата се опира в ръба и остава в тръбата.</p></div></li>
+        <li><div><strong>Дръпни буталото обратно</strong><p>Купчинката пада надолу и е готова за следващите 5 €. През прозорчето отпред виждаш колко монети има в тръбата.</p></div></li>
       </ol>
     </section>
     <section>
       <h2>Части за принтиране</h2>
       <div class="table-scroll">
         <table>
-          <thead><tr><th>Файл</th><th>Размер, мм</th><th>Бр.</th></tr></thead>
+          <thead><tr><th>Файл</th><th>Размер, мм</th></tr></thead>
           <tbody>
-            <tr><td>ramka_10eur_6x2.stl</td><td class="n">188 × 112 × 36</td><td class="n">1</td></tr>
-            <tr><td>kasetka_10eur_20moneti.stl</td><td class="n">30 × 52 × 23</td><td class="n">12+</td></tr>
-            <tr><td>ramka_5eur_6x3.stl</td><td class="n">188 × 93 × 36</td><td class="n">1</td></tr>
-            <tr><td>kasetka_5eur_10moneti.stl</td><td class="n">30 × 29 × 23</td><td class="n">18+</td></tr>
+            <tr><td>1_osnova.stl</td><td class="n">140 × 107 × 155</td></tr>
+            <tr><td>2_bunker.stl</td><td class="n">116 × 130 × 59</td></tr>
+            <tr><td>3_disk.stl</td><td class="n">Ø100 × 81</td></tr>
+            <tr><td>4_tryba.stl</td><td class="n">Ø64 × 123</td></tr>
+            <tr><td>5_butalo.stl</td><td class="n">74 × 25 × 22</td></tr>
+            <tr><td>6_drazhka.stl</td><td class="n">20 × 30 × 12</td></tr>
+            <tr><td>7_chashka.stl</td><td class="n">Ø58 × 34</td></tr>
           </tbody>
         </table>
       </div>
-      <p class="note">Монета 50 ц: Ø 24,25 мм, дебелина 2,38 мм. Улеят е дълъг 48,8 мм, което е 20 монети плюс 1,2 мм хлабина. За още една монета трябват 2,38 мм. Принтирай повече касетки от гнездата, за да пълниш нови, докато пълните чакат на тезгяха.</p>
+      <p class="note">Допълнително: болт M8 × 80, шайба M8 и самоконтрираща гайка M8 (за оста на диска), плюс малко лепило за дръжката и щифтовете на бункера. Всички части се печатат без подпори.</p>
     </section>
   </div>
 </div>
@@ -117,22 +117,17 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-<!-- в публикувания преглед STL файловете идват вградени; локално се четат от папка stl/ -->
-<script src="stl_data.js"></script>
+<script src="mashina/preview_data.js"></script>
 <script>
 (function () {
   const stage = document.getElementById('stage');
-  if (!window.THREE || !THREE.STLLoader || !THREE.OrbitControls) {
-    stage.insertAdjacentHTML('beforeend', '<div class="err">3D визуализацията не успя да се зареди. STL файловете са в папка coin-counter/stl.</div>');
+  if (!window.THREE || !THREE.STLLoader || !THREE.OrbitControls || !window.MACHINE) {
+    stage.insertAdjacentHTML('beforeend', '<div class="err">3D визуализацията не успя да се зареди. STL файловете са в папка coin-counter/mashina/stl.</div>');
     return;
   }
-  // Размери – същите като в generate.py
-  const COIN_D = 24.25, COIN_T = 2.38, CART_W = 30, FIT = 0.4, WALL = 3, FRAME_FLOOR = 2.4, CART_FLOOR = 1.6;
-  const VARIANTS = {
-    10: { coins: 20, cols: 6, rows: 2, frame: 'stl/ramka_10eur_6x2.stl', cart: 'stl/kasetka_10eur_20moneti.stl' },
-    5:  { coins: 10, cols: 6, rows: 3, frame: 'stl/ramka_5eur_6x3.stl',  cart: 'stl/kasetka_5eur_10moneti.stl' }
-  };
-  const cartLen = n => n * COIN_T + 1.2 + 2 * 1.8;
+  const K = MACHINE.c, T = K.COIN_T, R = K.COIN_D / 2;
+  const S = Math.SQRT1_2;
+  const MAX_STACK = Math.floor((K.FUNNEL_Z - 25 - K.FLOOR_Z) / T);
 
   const css = getComputedStyle(document.documentElement);
   const tok = n => new THREE.Color(css.getPropertyValue(n).trim());
@@ -141,112 +136,139 @@
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   stage.prepend(renderer.domElement);
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(35, 16 / 9, 1, 3000);
-  camera.position.set(130, 175, 200);
+  const camera = new THREE.PerspectiveCamera(35, 16 / 10, 1, 4000);
+  camera.position.set(-230, 300, 380);
   const controls = new THREE.OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
-  controls.target.set(0, 10, 0);
+  controls.target.set(10, 100, -25);
 
-  scene.add(new THREE.HemisphereLight(0xffffff, 0x445550, 0.75));
-  const sun = new THREE.DirectionalLight(0xffffff, 0.75);
-  sun.position.set(120, 300, 160);
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x445550, 0.8));
+  const sun = new THREE.DirectionalLight(0xffffff, 0.7);
+  sun.position.set(-150, 300, 250);
   scene.add(sun);
 
-  const matFrame = new THREE.MeshStandardMaterial({ roughness: 0.6, metalness: 0.0 });
-  const matCart = new THREE.MeshStandardMaterial({ roughness: 0.5, metalness: 0.0 });
-  const matCoin = new THREE.MeshStandardMaterial({ roughness: 0.4, metalness: 0.25 });
+  const mat = {
+    frame: new THREE.MeshStandardMaterial({ roughness: 0.6 }),
+    part: new THREE.MeshStandardMaterial({ roughness: 0.5 }),
+    clear: new THREE.MeshStandardMaterial({ roughness: 0.3, transparent: true, opacity: 0.35, depthWrite: false }),
+    coin: new THREE.MeshStandardMaterial({ roughness: 0.4, metalness: 0.25 })
+  };
   function applyTheme() {
     scene.background = tok('--scene');
-    matFrame.color = tok('--ink').lerp(tok('--scene'), 0.55);
-    matCart.color = tok('--plastic');
-    matCoin.color = tok('--brass');
+    mat.frame.color = tok('--ink').lerp(tok('--scene'), 0.5);
+    mat.part.color = tok('--plastic');
+    mat.clear.color = tok('--plastic');
+    mat.coin.color = tok('--brass');
   }
   applyTheme();
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
   new MutationObserver(applyTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
-  const coinGeo = new THREE.CylinderGeometry(COIN_D / 2, COIN_D / 2, COIN_T * 0.96, 40);
   const loader = new THREE.STLLoader();
-  const cache = {};
-  const parse = buf => { const g = loader.parse(buf); g.computeVertexNormals(); return g; };
-  const fromBase64 = s => Uint8Array.from(atob(s), ch => ch.charCodeAt(0)).buffer;
-  const load = url => cache[url] || (cache[url] = window.STL_DATA && window.STL_DATA[url]
-    ? Promise.resolve(parse(fromBase64(window.STL_DATA[url])))
-    : new Promise((res, rej) => loader.load(url, g => { g.computeVertexNormals(); res(g); }, undefined, rej)));
+  const geo = name => {
+    const g = loader.parse(Uint8Array.from(atob(MACHINE.stl[name]), ch => ch.charCodeAt(0)).buffer);
+    g.computeVertexNormals();
+    return g;
+  };
 
-  // Сцената е в координати на STL (Z нагоре); групата се завърта към Y нагоре на three.js
+  // Координати като в generate.py (Z нагоре); групата ги завърта към Y нагоре на three.js
   const root = new THREE.Group();
   root.rotation.x = -Math.PI / 2;
+  root.position.set(0, 0, 0);
   scene.add(root);
 
-  let current = 10, lifted = false, carts = [], shakeT = 0;
+  root.add(new THREE.Mesh(geo('base'), mat.frame));
+  root.add(new THREE.Mesh(geo('hopper'), mat.clear));
+  root.add(new THREE.Mesh(geo('magazine'), mat.clear));
+  root.add(new THREE.Mesh(geo('cup'), mat.frame));
+
+  // диск: група в координатите на плочата, въртим около нейната Z
+  const discFrame = new THREE.Group();
+  discFrame.position.set(0, 0, K.C_Z);
+  discFrame.rotation.x = K.TILT * Math.PI / 180;
+  root.add(discFrame);
+  const spinner = new THREE.Group();
+  discFrame.add(spinner);
+  spinner.add(new THREE.Mesh(geo('disc'), mat.part));
+
+  const coinGeo = new THREE.CylinderGeometry(R, R, T * 0.96, 40);
+  const flatCoin = () => { const m = new THREE.Mesh(coinGeo, mat.coin); m.rotation.x = Math.PI / 2; return m; };
+
+  // монети в гнездата (въртят се с диска)
+  const pocketCoins = [];
+  for (let i = 0; i < K.POCKETS; i++) {
+    const a = 2 * Math.PI * i / K.POCKETS;
+    const m = flatCoin();
+    m.position.set(K.POCKET_R * Math.cos(a), K.POCKET_R * Math.sin(a), T / 2);
+    spinner.add(m);
+    pocketCoins.push({ mesh: m, a0: a, last: null });
+  }
+  // купчина в долната част на бункера (неподвижна спрямо плочата)
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < 26; i++) {
+    const m = flatCoin();
+    const ang = Math.PI * (1.15 + 0.7 * rnd()), rr = 18 + 26 * rnd();
+    m.position.set(rr * Math.cos(ang), rr * Math.sin(ang) - 6, 2.2 + T * (1 + Math.floor(i / 9)) + rnd());
+    m.rotation.z = rnd() * 0.3;
+    m.rotation.y = (rnd() - 0.5) * 0.4;
+    discFrame.add(m);
+  }
+
+  // бутало + дръжка
+  const pusher = new THREE.Group();
+  root.add(pusher);
+  const pm = new THREE.Mesh(geo('pusher'), mat.part);
+  pm.position.set(K.PUSHER_X, K.MAG_Y, K.PUSHER_Z);
+  pusher.add(pm);
+  pusher.add(new THREE.Mesh(geo('handle'), mat.part));
+
+  // купчинка в тръбата
+  const stackGroup = new THREE.Group();
+  root.add(stackGroup);
+  const stack = [];
+  const stackZ = i => K.FLOOR_Z + T * (i + 0.5);
+  function addStackCoin() {
+    const m = flatCoin();
+    m.position.set(0, K.MAG_Y, stackZ(stack.length));
+    stackGroup.add(m);
+    stack.push(m);
+  }
+  for (let i = 0; i < 24; i++) addStackCoin();
+
+  // чашката
+  const cupCoins = [];
+  let cupEuro = 0;
+  function addCupCoin() {
+    if (cupCoins.length >= 60) return;
+    const m = flatCoin();
+    const a = rnd() * Math.PI * 2, rr = rnd() * 12;
+    m.position.set(K.CUP_X + rr * Math.cos(a), K.MAG_Y + rr * Math.sin(a), 6 + T * (cupCoins.length / 4) + 0.5);
+    m.rotation.x = Math.PI / 2 + (rnd() - 0.5) * 0.5;
+    root.add(m);
+    cupCoins.push(m);
+  }
+
+  // падаща монета от дупката към тръбата
+  const exitPos = new THREE.Vector3(0, (K.POCKET_R + 5) * S, K.C_Z + (K.POCKET_R - 5) * S);
+  const falling = [];
+
   const readout = document.getElementById('readout');
-
-  async function build(v) {
-    const spec = VARIANTS[v];
-    let frameGeo, cartGeo;
-    try { [frameGeo, cartGeo] = await Promise.all([load(spec.frame), load(spec.cart)]); }
-    catch (e) { stage.insertAdjacentHTML('beforeend', '<div class="err">STL файловете не се заредиха.</div>'); return; }
-    if (v !== current) return;
-    root.clear();
-    carts = [];
-    const L = cartLen(spec.coins);
-    const ox = spec.cols * (CART_W + FIT) + 2 * WALL, oy = spec.rows * (L + FIT) + 2 * WALL;
-    const g = new THREE.Group();
-    g.position.set(-ox / 2, -oy / 2, 0);
-    root.add(g);
-    g.add(new THREE.Mesh(frameGeo, matFrame));
-
-    const inner = spec.coins * COIN_T + 1.2;
-    let total = 0, full = 0;
-    const n = spec.cols * spec.rows;
-    for (let i = 0; i < n; i++) {
-      const c = i % spec.cols, r = Math.floor(i / spec.cols);
-      const cart = new THREE.Group();
-      cart.add(new THREE.Mesh(cartGeo, matCart));
-      // две касетки остават недопълнени, за да се вижда разликата
-      const count = (i === 3 || i === n - 2) ? Math.round(spec.coins * 0.55) : spec.coins;
-      for (let k = 0; k < count; k++) {
-        const m = new THREE.Mesh(coinGeo, matCoin); // оста на цилиндъра е по Y – монета на ребро
-        m.position.set(0, -inner / 2 + COIN_T * (k + 0.5), CART_FLOOR + COIN_D / 2);
-        cart.add(m);
-      }
-      total += count; if (count === spec.coins) full++;
-      cart.userData.base = new THREE.Vector3(WALL + (c + 0.5) * (CART_W + FIT), WALL + (r + 0.5) * (L + FIT), FRAME_FLOOR);
-      cart.userData.lift = new THREE.Vector3((c - (spec.cols - 1) / 2) * 14, (r - (spec.rows - 1) / 2) * 30 - 10, 70);
-      cart.position.copy(cart.userData.base);
-      g.add(cart);
-      carts.push(cart);
-    }
-    // няколко излишни монети, легнали отгоре
-    for (let i = 0; i < 7; i++) {
-      const m = new THREE.Mesh(coinGeo, matCoin);
-      m.rotation.x = Math.PI / 2 + (i % 3 - 1) * 0.25;
-      m.position.set(WALL + 20 + i * 24, WALL + 14 + (i % 2) * 40, FRAME_FLOOR + 13.6 + COIN_D + 2);
-      m.userData.loose = true;
-      g.add(m);
-    }
-    readout.innerHTML = `${full} пълни касетки = <b>${full * v} €</b> · ${total} монети в улеите`;
-    setLift(lifted);
+  const crankBtn = document.getElementById('crank');
+  const pushBtn = document.getElementById('push');
+  let cranking = false, angle = 0, push = null;
+  function update() {
+    const full = stack.length + falling.length >= MAX_STACK;
+    readout.innerHTML = `В тръбата: ${stack.length} монети${full ? ' <span class="full">(пълна)</span>' : ''} · В чашката: <b>${cupEuro} €</b>`;
+    pushBtn.disabled = !!push || stack.length < K.COINS_PER_PUSH;
   }
-
-  function setLift(on) {
-    lifted = on;
-    document.getElementById('lift').setAttribute('aria-pressed', String(on));
-    document.getElementById('lift').textContent = on ? 'Върни касетките' : 'Извади касетките';
-    root.traverse(o => { if (o.userData.loose) o.visible = !on; });
-  }
-
-  function select(v) {
-    current = v;
-    document.getElementById('v10').setAttribute('aria-pressed', String(v === 10));
-    document.getElementById('v5').setAttribute('aria-pressed', String(v === 5));
-    build(v);
-  }
-  document.getElementById('v10').onclick = () => select(10);
-  document.getElementById('v5').onclick = () => select(5);
-  document.getElementById('lift').onclick = () => setLift(!lifted);
-  document.getElementById('shake').onclick = () => { shakeT = 1.2; };
+  crankBtn.onclick = () => { cranking = !cranking; crankBtn.setAttribute('aria-pressed', String(cranking)); crankBtn.textContent = cranking ? 'Спри' : 'Върти дръжката'; };
+  pushBtn.onclick = () => {
+    if (push || stack.length < K.COINS_PER_PUSH) return;
+    push = { t: 0, batch: stack.splice(0, K.COINS_PER_PUSH) };
+    update();
+  };
+  document.getElementById('empty').onclick = () => { cupCoins.forEach(m => root.remove(m)); cupCoins.length = 0; cupEuro = 0; update(); };
+  update();
 
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   function resize() {
@@ -258,21 +280,71 @@
   new ResizeObserver(resize).observe(stage);
   resize();
 
+  const ease = x => x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
   const clock = new THREE.Clock();
   (function tick() {
     const dt = Math.min(clock.getDelta(), 0.05);
-    const k = reduce ? 1 : Math.min(1, dt * 6);
-    carts.forEach(c => {
-      const target = c.userData.base.clone();
-      if (lifted) target.add(c.userData.lift);
-      c.position.lerp(target, k);
-    });
-    if (shakeT > 0) { shakeT = Math.max(0, shakeT - dt); root.position.x = reduce ? 0 : Math.sin(shakeT * 40) * 6 * shakeT; }
+
+    if (cranking) {
+      angle += dt * 2.6;
+      spinner.rotation.z = angle;
+      pocketCoins.forEach(p => {
+        const a = ((p.a0 + angle) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
+        const deg = a * 180 / Math.PI;
+        // гнездото е пълно от дъното (270°) до горе (90°), после е празно
+        const loaded = deg >= 250 || deg < 90;
+        if (p.last !== null && p.last < 90 && deg >= 90 && p.mesh.visible) {
+          if (stack.length + falling.length < MAX_STACK) {
+            const m = flatCoin();
+            m.position.copy(exitPos);
+            root.add(m);
+            falling.push({ m, t: 0, from: exitPos.clone() });
+          } else loaded || (p.keep = true); // тръбата е пълна – монетата остава в гнездото
+        }
+        p.mesh.visible = loaded || !!p.keep;
+        if (deg >= 250 && deg < 260) p.keep = false;
+        p.last = deg;
+      });
+    }
+
+    for (let i = falling.length - 1; i >= 0; i--) {
+      const f = falling[i];
+      f.t += dt / 0.35;
+      const target = new THREE.Vector3(0, K.MAG_Y, stackZ(stack.length));
+      f.m.position.lerpVectors(f.from, target, Math.min(1, f.t * f.t));
+      if (f.t >= 1) { root.remove(f.m); falling.splice(i, 1); addStackCoin(); update(); }
+    }
+
+    if (push) {
+      push.t += dt;
+      const P = 0.45, D = 0.3, B = 0.4;
+      const tt = reduce ? P + D + B : push.t;
+      let x;
+      if (tt < P) x = ease(tt / P) * K.STROKE;
+      else if (tt < P + D) x = K.STROKE;
+      else x = K.STROKE * (1 - ease(Math.min(1, (tt - P - D) / B)));
+      pusher.position.x = x;
+      push.batch.forEach((m, i) => {
+        if (tt < P) m.position.x = x;
+        else {
+          const k = Math.min(1, (tt - P) / D);
+          m.position.x = K.STROKE + (K.CUP_X - K.STROKE) * k;
+          m.position.z = stackZ(i) + (6 - stackZ(i)) * k * k;
+        }
+      });
+      if (tt >= P + D && !push.dropped) {
+        push.dropped = true;
+        push.batch.forEach(m => stackGroup.remove(m));
+        for (let i = 0; i < K.COINS_PER_PUSH; i++) addCupCoin();
+        cupEuro += K.COINS_PER_PUSH / 2;
+      }
+      if (tt >= P + D) stack.forEach((m, i) => { m.position.z += (stackZ(i) - m.position.z) * Math.min(1, dt * 10); });
+      if (tt >= P + D + B) { push = null; pusher.position.x = 0; update(); }
+    }
+
     controls.update();
     renderer.render(scene, camera);
     requestAnimationFrame(tick);
   })();
-
-  select(10);
 })();
 </script>
