@@ -1,0 +1,278 @@
+<meta charset="utf-8">
+<title>Броач за 50 цента</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  /* Layout: работилнична карта – 3D сцената е главното, под нея стъпки и размери в мрежа */
+  :root {
+    --bg: #eef0ee;
+    --panel: #ffffff;
+    --ink: #1d2422;
+    --muted: #5b6662;
+    --line: #d3d9d6;
+    --brass: #b3871f;
+    --plastic: #2f7d6d;
+    --scene: #dfe4e1;
+    --display: "Unbounded", "Arial Black", sans-serif;
+    --body: "IBM Plex Sans", "Segoe UI", Roboto, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #141917; --panel: #1c2320; --ink: #e6ebe8; --muted: #9aa7a2; --line: #2e3834;
+      --brass: #d9a93a; --plastic: #4fb39c; --scene: #222a27; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #141917; --panel: #1c2320; --ink: #e6ebe8; --muted: #9aa7a2; --line: #2e3834;
+    --brass: #d9a93a; --plastic: #4fb39c; --scene: #222a27; color-scheme: dark;
+  }
+  body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.55; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding-block: 28px 48px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+    display: grid; gap: 22px; }
+  h1 { font-family: var(--display); font-weight: 700; font-size: clamp(24px, 4vw, 36px); line-height: 1.1; margin: 0; text-wrap: balance; }
+  h1 em { font-style: normal; color: var(--brass); }
+  .lead { margin: 6px 0 0; color: var(--muted); max-width: 62ch; }
+  .stage { position: relative; background: var(--scene); border-radius: 14px; overflow: hidden; aspect-ratio: 16 / 9; max-width: 100%; min-height: 300px; }
+  .stage canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+  .hint { position: absolute; left: 12px; bottom: 10px; font: 12px var(--mono); color: var(--muted); pointer-events: none; }
+  .err { position: absolute; inset: 0; display: grid; place-items: center; padding: 20px; text-align: center; color: var(--muted); }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 3px; background: var(--panel); }
+  .seg button, .btn { font: 600 14px var(--body); border: 0; background: transparent; color: var(--ink); padding: 7px 14px; border-radius: 999px; cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--plastic); color: #fff; }
+  .btn { border: 1px solid var(--line); background: var(--panel); }
+  .btn[aria-pressed="true"] { border-color: var(--brass); color: var(--brass); }
+  button:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+  .readout { margin-left: auto; font: 500 14px var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+  .readout b { color: var(--brass); font-weight: 500; }
+  .grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 22px; }
+  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } .readout { margin-left: 0; width: 100%; } }
+  section { min-width: 0; }
+  h2 { font-family: var(--display); font-weight: 500; font-size: 17px; margin: 0 0 12px; }
+  ol.steps { margin: 0; padding: 0; list-style: none; counter-reset: s; display: grid; gap: 12px; }
+  ol.steps li { counter-increment: s; display: grid; grid-template-columns: 30px 1fr; gap: 10px; }
+  ol.steps li::before { content: counter(s); font: 700 14px var(--display); color: var(--brass); border: 1.5px solid var(--brass);
+    border-radius: 50%; width: 26px; height: 26px; display: grid; place-items: center; }
+  ol.steps p { margin: 2px 0 0; color: var(--muted); }
+  .table-scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font: 600 11px var(--body); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  td.n { font-family: var(--mono); white-space: nowrap; }
+  .note { font-size: 13px; color: var(--muted); margin: 10px 0 0; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Броач-тава за монети от <em>50 цента</em></h1>
+    <p class="lead">Изсипваш шепа монети, разклащаш и всяка касетка се пълни с точно 20 монети (10 €) или 10 монети (5 €). Повече не влизат. Вадиш пълните касетки и всяка е готова пачка за ресто.</p>
+  </header>
+
+  <div class="stage" id="stage">
+    <span class="hint">Влачи за въртене · колелце / два пръста за мащаб</span>
+  </div>
+
+  <div class="controls">
+    <div class="seg" role="group" aria-label="Размер на пачката">
+      <button id="v10" type="button" aria-pressed="true">Пачка 10 €</button>
+      <button id="v5" type="button" aria-pressed="false">Пачка 5 €</button>
+    </div>
+    <button class="btn" id="lift" type="button" aria-pressed="false">Извади касетките</button>
+    <button class="btn" id="shake" type="button">Разклати</button>
+    <span class="readout" id="readout"></span>
+  </div>
+
+  <div class="grid">
+    <section>
+      <h2>Как се работи</h2>
+      <ol class="steps">
+        <li><div><strong>Изсипи шепа монети в тавата</strong><p>Около 1,5 пъти повече, отколкото събират касетките: за 12 касетки по 10 € това са приблизително 350 монети.</p></div></li>
+        <li><div><strong>Разклати наляво-надясно 5–10 секунди</strong><p>Монетите се изправят на ребро и падат в улеите. Когато улеят е пълен, 21-вата монета няма място и остава отгоре.</p></div></li>
+        <li><div><strong>Наклони тавата напред</strong><p>Излишните монети се изсипват през ниската предна стена обратно в кутията. Пълните касетки стоят на място, защото челните им стени ги държат.</p></div></li>
+        <li><div><strong>Извади касетките</strong><p>Хвани ги за двете уши или бутни с пръст отдолу през дупката. Всяка касетка е една пачка, изсипваш я директно в ръката на клиента.</p></div></li>
+      </ol>
+    </section>
+    <section>
+      <h2>Части за принтиране</h2>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Файл</th><th>Размер, мм</th><th>Бр.</th></tr></thead>
+          <tbody>
+            <tr><td>ramka_10eur_6x2.stl</td><td class="n">188 × 112 × 36</td><td class="n">1</td></tr>
+            <tr><td>kasetka_10eur_20moneti.stl</td><td class="n">30 × 52 × 23</td><td class="n">12+</td></tr>
+            <tr><td>ramka_5eur_6x3.stl</td><td class="n">188 × 93 × 36</td><td class="n">1</td></tr>
+            <tr><td>kasetka_5eur_10moneti.stl</td><td class="n">30 × 29 × 23</td><td class="n">18+</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">Монета 50 ц: Ø 24,25 мм, дебелина 2,38 мм. Улеят е дълъг 48,8 мм, което е 20 монети плюс 1,2 мм хлабина. За още една монета трябват 2,38 мм. Принтирай повече касетки от гнездата, за да пълниш нови, докато пълните чакат на тезгяха.</p>
+    </section>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<!-- в публикувания преглед STL файловете идват вградени; локално се четат от папка stl/ -->
+<script src="stl_data.js"></script>
+<script>
+(function () {
+  const stage = document.getElementById('stage');
+  if (!window.THREE || !THREE.STLLoader || !THREE.OrbitControls) {
+    stage.insertAdjacentHTML('beforeend', '<div class="err">3D визуализацията не успя да се зареди. STL файловете са в папка coin-counter/stl.</div>');
+    return;
+  }
+  // Размери – същите като в generate.py
+  const COIN_D = 24.25, COIN_T = 2.38, CART_W = 30, FIT = 0.4, WALL = 3, FRAME_FLOOR = 2.4, CART_FLOOR = 1.6;
+  const VARIANTS = {
+    10: { coins: 20, cols: 6, rows: 2, frame: 'stl/ramka_10eur_6x2.stl', cart: 'stl/kasetka_10eur_20moneti.stl' },
+    5:  { coins: 10, cols: 6, rows: 3, frame: 'stl/ramka_5eur_6x3.stl',  cart: 'stl/kasetka_5eur_10moneti.stl' }
+  };
+  const cartLen = n => n * COIN_T + 1.2 + 2 * 1.8;
+
+  const css = getComputedStyle(document.documentElement);
+  const tok = n => new THREE.Color(css.getPropertyValue(n).trim());
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  stage.prepend(renderer.domElement);
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(35, 16 / 9, 1, 3000);
+  camera.position.set(130, 175, 200);
+  const controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.target.set(0, 10, 0);
+
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x445550, 0.75));
+  const sun = new THREE.DirectionalLight(0xffffff, 0.75);
+  sun.position.set(120, 300, 160);
+  scene.add(sun);
+
+  const matFrame = new THREE.MeshStandardMaterial({ roughness: 0.6, metalness: 0.0 });
+  const matCart = new THREE.MeshStandardMaterial({ roughness: 0.5, metalness: 0.0 });
+  const matCoin = new THREE.MeshStandardMaterial({ roughness: 0.4, metalness: 0.25 });
+  function applyTheme() {
+    scene.background = tok('--scene');
+    matFrame.color = tok('--ink').lerp(tok('--scene'), 0.55);
+    matCart.color = tok('--plastic');
+    matCoin.color = tok('--brass');
+  }
+  applyTheme();
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+  new MutationObserver(applyTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+  const coinGeo = new THREE.CylinderGeometry(COIN_D / 2, COIN_D / 2, COIN_T * 0.96, 40);
+  const loader = new THREE.STLLoader();
+  const cache = {};
+  const parse = buf => { const g = loader.parse(buf); g.computeVertexNormals(); return g; };
+  const fromBase64 = s => Uint8Array.from(atob(s), ch => ch.charCodeAt(0)).buffer;
+  const load = url => cache[url] || (cache[url] = window.STL_DATA && window.STL_DATA[url]
+    ? Promise.resolve(parse(fromBase64(window.STL_DATA[url])))
+    : new Promise((res, rej) => loader.load(url, g => { g.computeVertexNormals(); res(g); }, undefined, rej)));
+
+  // Сцената е в координати на STL (Z нагоре); групата се завърта към Y нагоре на three.js
+  const root = new THREE.Group();
+  root.rotation.x = -Math.PI / 2;
+  scene.add(root);
+
+  let current = 10, lifted = false, carts = [], shakeT = 0;
+  const readout = document.getElementById('readout');
+
+  async function build(v) {
+    const spec = VARIANTS[v];
+    let frameGeo, cartGeo;
+    try { [frameGeo, cartGeo] = await Promise.all([load(spec.frame), load(spec.cart)]); }
+    catch (e) { stage.insertAdjacentHTML('beforeend', '<div class="err">STL файловете не се заредиха.</div>'); return; }
+    if (v !== current) return;
+    root.clear();
+    carts = [];
+    const L = cartLen(spec.coins);
+    const ox = spec.cols * (CART_W + FIT) + 2 * WALL, oy = spec.rows * (L + FIT) + 2 * WALL;
+    const g = new THREE.Group();
+    g.position.set(-ox / 2, -oy / 2, 0);
+    root.add(g);
+    g.add(new THREE.Mesh(frameGeo, matFrame));
+
+    const inner = spec.coins * COIN_T + 1.2;
+    let total = 0, full = 0;
+    const n = spec.cols * spec.rows;
+    for (let i = 0; i < n; i++) {
+      const c = i % spec.cols, r = Math.floor(i / spec.cols);
+      const cart = new THREE.Group();
+      cart.add(new THREE.Mesh(cartGeo, matCart));
+      // две касетки остават недопълнени, за да се вижда разликата
+      const count = (i === 3 || i === n - 2) ? Math.round(spec.coins * 0.55) : spec.coins;
+      for (let k = 0; k < count; k++) {
+        const m = new THREE.Mesh(coinGeo, matCoin); // оста на цилиндъра е по Y – монета на ребро
+        m.position.set(0, -inner / 2 + COIN_T * (k + 0.5), CART_FLOOR + COIN_D / 2);
+        cart.add(m);
+      }
+      total += count; if (count === spec.coins) full++;
+      cart.userData.base = new THREE.Vector3(WALL + (c + 0.5) * (CART_W + FIT), WALL + (r + 0.5) * (L + FIT), FRAME_FLOOR);
+      cart.userData.lift = new THREE.Vector3((c - (spec.cols - 1) / 2) * 14, (r - (spec.rows - 1) / 2) * 30 - 10, 70);
+      cart.position.copy(cart.userData.base);
+      g.add(cart);
+      carts.push(cart);
+    }
+    // няколко излишни монети, легнали отгоре
+    for (let i = 0; i < 7; i++) {
+      const m = new THREE.Mesh(coinGeo, matCoin);
+      m.rotation.x = Math.PI / 2 + (i % 3 - 1) * 0.25;
+      m.position.set(WALL + 20 + i * 24, WALL + 14 + (i % 2) * 40, FRAME_FLOOR + 13.6 + COIN_D + 2);
+      m.userData.loose = true;
+      g.add(m);
+    }
+    readout.innerHTML = `${full} пълни касетки = <b>${full * v} €</b> · ${total} монети в улеите`;
+    setLift(lifted);
+  }
+
+  function setLift(on) {
+    lifted = on;
+    document.getElementById('lift').setAttribute('aria-pressed', String(on));
+    document.getElementById('lift').textContent = on ? 'Върни касетките' : 'Извади касетките';
+    root.traverse(o => { if (o.userData.loose) o.visible = !on; });
+  }
+
+  function select(v) {
+    current = v;
+    document.getElementById('v10').setAttribute('aria-pressed', String(v === 10));
+    document.getElementById('v5').setAttribute('aria-pressed', String(v === 5));
+    build(v);
+  }
+  document.getElementById('v10').onclick = () => select(10);
+  document.getElementById('v5').onclick = () => select(5);
+  document.getElementById('lift').onclick = () => setLift(!lifted);
+  document.getElementById('shake').onclick = () => { shakeT = 1.2; };
+
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function resize() {
+    const w = stage.clientWidth, h = stage.clientHeight;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+  new ResizeObserver(resize).observe(stage);
+  resize();
+
+  const clock = new THREE.Clock();
+  (function tick() {
+    const dt = Math.min(clock.getDelta(), 0.05);
+    const k = reduce ? 1 : Math.min(1, dt * 6);
+    carts.forEach(c => {
+      const target = c.userData.base.clone();
+      if (lifted) target.add(c.userData.lift);
+      c.position.lerp(target, k);
+    });
+    if (shakeT > 0) { shakeT = Math.max(0, shakeT - dt); root.position.x = reduce ? 0 : Math.sin(shakeT * 40) * 6 * shakeT; }
+    controls.update();
+    renderer.render(scene, camera);
+    requestAnimationFrame(tick);
+  })();
+
+  select(10);
+})();
+</script>
